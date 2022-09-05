@@ -1,4 +1,7 @@
+*.swp
 build
 Makefile
 test/files
 scr.sh
+node_modules
+package-lock.json

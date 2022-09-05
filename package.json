@@ -1,15 +1,19 @@
 {
   "main": "lib/binding.js",
   "dependencies": {
-    "node-addon-api": "^1.1.0"
+    "node-addon-api": "^1.1.0",
+    "uuid": "^8.3.2"
   },
   "scripts": {
-    "test": "node --napi-modules ./test/test_binding.js"
+    "test": "jest"
   },
   "gypfile": true,
-  "name": "wrapper",
+  "name": "net-runner-engine",
   "version": "1.0.0",
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "jest": "^29.0.1"
+  }
 }

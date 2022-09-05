@@ -1,9 +1,3 @@
-#!/usr/bin/env node
-
-const Emulator = require('../lib/binding.js');
-const assert = require('assert');
-const path = require('path');
-
 /* examples config TODO require all ids to be 0 ... N ?
  * { 
  *   nodes: [{ id, title, x, y, type, applications  }], 
@@ -62,12 +56,8 @@ const config = {
   options: {
     animeLen: 10,
     populateIP: false,
+    verbose: false, //TODO parse it
   },
 }
 
-console.log(JSON.stringify(config, null, 2));
-
-async function f1() {
-  setTimeout(() => Emulator({ config, pcapPath: path.resolve(__dirname, 'files')}), 10);
-}
-f1();
+module.exports = config;

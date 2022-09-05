@@ -48,7 +48,7 @@ Napi::Value Wrapper::setPcapPath(const Napi::CallbackInfo& info) {
     return env.Null();
   }
   pcapPath = info[0].As<Napi::String>().Utf8Value();
-  debug << "pcap path " << pcapPath << endl;
+  //debug << "pcap path " << pcapPath << endl;
   return env.Null();
 }
 

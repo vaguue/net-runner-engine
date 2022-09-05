@@ -41,6 +41,7 @@ DebugStream debug {true};
 
 struct options {
   bool populateIP = true;
+  bool verbose = false;
   double animeLen = 10;
 };
 

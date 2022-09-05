@@ -108,6 +108,9 @@ options getOpitons(const Napi::Object& config) {
   if (configOptions.Has("animeLen")) {
     res.animeLen = configOptions.Get("animeLen").As<Napi::Number>().DoubleValue();
   }
+  if (configOptions.Has("verbose")) {
+    res.verbose = configOptions.Get("verbose").As<Napi::Boolean>();
+  }
   return res;
 }
 /* *** */
@@ -144,7 +147,8 @@ void CustomAssign (Ptr<NetDevice> device, string addr) {
     if (ndqi)
     {
       std::size_t nTxQueues = ndqi->GetNTxQueues ();
-      TrafficControlHelper tcHelper = TrafficControlHelper::Default (nTxQueues);
+      //TrafficControlHelper tcHelper = TrafficControlHelper::Default (nTxQueues);
+      TrafficControlHelper tcHelper = TrafficControlHelper::Default ();
       tcHelper.Install (device);
     }
   }
@@ -431,9 +435,11 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
   }
   auto config = info[0].As<Napi::Object>();
 
+  auto options = getOpitons(config);
+  debug.enabled = options.verbose;
+
   auto myNodes = getNodes(config);
   auto graph = getGraph(config);
-  auto options = getOpitons(config);
   auto addrInfo = getAddrInfo(config);
 
   debug << "[*] graph:" << endl;
