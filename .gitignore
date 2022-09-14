@@ -1,7 +1,9 @@
+coverage
 *.swp
 build
 Makefile
 test/files
 scr.sh
 node_modules
+vendor
 package-lock.json

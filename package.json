@@ -1,18 +1,41 @@
 {
   "main": "lib/binding.js",
   "dependencies": {
-    "node-addon-api": "^1.1.0",
+    "detect-libc": "^2.0.1",
+    "got": "^12.4.1",
+    "gunzip-maybe": "^1.4.2",
+    "node-addon-api": "^5.0.0",
+    "tar-fs": "^2.1.1",
     "uuid": "^8.3.2"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest --coverage=true",
+    "install": "node install/ns3.js && node-gyp rebuild"
+  },
+  "engines": {
+    "node": ">=14.15.0"
   },
   "gypfile": true,
   "name": "net-runner-engine",
   "version": "1.0.0",
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Valentina K <sabrinarempel7@gmail.com>",
+  "license": "GPL-3.0",
+  "description": "Node.js ns-3 wrapper",
+  "homepage": "https://github.com/hedonist666/net-runner-engine",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/hedonist666/net-runner-engine"
+  },
+  "binary": {
+    "napi_versions": [
+      7
+    ]
+  },
+  "keywords": [
+    "ns-3",
+    "network simulator",
+    "simulator"
+  ],
   "devDependencies": {
     "jest": "^29.0.1"
   }
