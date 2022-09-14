@@ -11,6 +11,9 @@ const { systemsSupported, sharedObjects, include } = require('./initData');
 
 const rootDir = path.resolve(__dirname, '..');
 
+const config = {
+  enableGlobalSearch: false,
+};
 
 
 function dirContains(dir, files) {
@@ -51,40 +54,50 @@ function systemId() {
 const vendorRoot = path.resolve(__dirname, 'vendor');
 const vendorLibDir = path.join(vendorRoot, 'lib');
 const vendorIncludeDir = path.join(vendorRoot, 'include');
-const libDir = dirs.find(e => dirContains(e, sharedObjects));
-const includeDir = dirs.find(e => dirContains(e, include));
+const libDir = config.enableGlobalSearch && dirs.find(e => dirContains(e, sharedObjects));
+const includeDir = config.enableGlobalSearch && dirs.find(e => dirContains(e, include));
 
 module.exports = { 
   libDir: libDir || vendorLibDir, 
+  boostDir: vendorIncludeDir,
   rpath: libDir ? libDir : '$$ORIGIN/../../install/vendor/lib',
   includeDir: includeDir || vendorIncludeDir,
   libs: ['-lstdc++fs', ...sharedObjects.map(e => e.replace(/^lib/, '-l:lib'))].join(' '),
 };
 
-async function main() {
+async function dwn(fn) {
   const got = await import('got').then(res => res.default);
   //const dwnURL = 'https://github.com/hedonist666/ns3-build/releases/download/3.29'; TODO create repo
-  const dwnURL = 'https://emu.net-runner.xyz/build/3.29/';
+  const dwnURL = 'https://emu.net-runner.xyz/build/';
+  const url = new URL(fn, dwnURL).href;
+  try {
+    await pipeline(
+      got.stream(url),
+      gunzip(),
+      tar.extract(vendorRoot),
+    );
+  } catch (e) {
+    throw Error('[!] Download error');
+  }
+}
+
+async function main() {
   try {
     const sysId = systemId();
-    console.log(libDir, includeDir);
-    if (libDir && includeDir) {
+    if (fs.existsSync(vendorRoot)) {
+      fs.rmSync(vendorRoot, { recursive: true, force: true });
+    }
+    fs.mkdirSync(vendorRoot);
+    console.log('[*] Downloading boost statis_assert (a little quirk for ns-3 openflow switch module)');
+    await dwn('boost/1.67.0/static_assert.tgz');
+    if (config.enableGlobalSearch && libDir && includeDir) {
       console.log('[*] Found ready ns-3 installation, building from source');
       process.exit(0);
     }
     else if (systemsSupported.includes(sysId)) {
       console.log('[*] Downloading prebuilt binaries');
-      if (fs.existsSync(vendorRoot)) {
-        fs.rmSync(vendorRoot, { recursive: true, force: true });
-      }
-      fs.mkdirSync(vendorRoot);
-      const fn = `${sysId}.tgz`;
-      const url = new URL(fn, dwnURL).href;
-      await pipeline(
-        got.stream(url),
-        gunzip(),
-        tar.extract(vendorRoot),
-      );
+      const fn = `ns-3/3.29/${sysId}.tgz`;
+      await dwn(fn);
       process.exit(0);
     }
     else {

@@ -28,7 +28,7 @@ const sharedObjects = [
   'libns3-dev-olsr-debug.so',
   'libns3-dev-point-to-point-debug.so',
   'libns3-dev-point-to-point-layout-debug.so',
-  'libns3-dev-porpagation-debug.so',
+  'libns3-dev-propagation-debug.so',
   'libns3-dev-sixlowpan-debug.so',
   'libns3-dev-spectrum-debug.so',
   'libns3-dev-stats-debug.so',
