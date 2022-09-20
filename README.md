@@ -12,10 +12,38 @@ It's core functionality is to launch the NS-3 functions according to JSON config
 ## Goal
 The goal of this project is to provide the web-based platform who those who are learning the inner workings of computer networks. Although the project is up and running, this project is very young and has **many** work to do. So I decided to do this with the NS-3 community all together!
 If you are an NS-3 expert, or Node.js enthusiast, or just want to commit to this project, feel free to contact me (see contacts below) and ask any questions.
-## Running
-The code is designed to run inside the Docker container, though all necessary node-gyp configs and installation scripts for usage without Docker will be added soon to this repo. Example scripts for running this module can be found at [scripts](https://github.com/hedonist666/net-runner-engine/blob/main/scripts) folder.
+## Installation
+There is dedicated Docker [image](https://hub.docker.com/r/netrunnerxyz/ns3-node) for installing and using this module. It you want to install this module in your system, just run 
+```
+npm install net-runner-engine
+```
+However, not all systems are supported. Current supported systems:
+* Linux x64
+## Standalone usage
+Example usage script:
+```
+const Simulator = require('net-runner-engine');
+cosnt fs = require('path');
+cosnt fs = require('fs');
+
+const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer } = Simulator;
+
+const dstDir = path.resolve(__dirname, 'files');
+if (!fs.existsSync(dstDir)) {
+  fs.mkdirSync(dstDir);
+}
+
+const net = new Network();
+const hosts = [...Array(3).keys()].map((_, i) => new Host({ x: 100*i, y: 100*i })).map(e => net.addNode(e));
+const hub = new Hub({ x: 0, y: 100 });
+net.addNode(hub);
+hosts.map((e, i) => e.connect(hub, { sourceIP: `192.168.1.${i}` }));
+hosts[0].setupApplication(new TCPClient({ dst: '192.168.1.2', port: '3000' }));
+hosts[2].setupApplication(new TCPServer({ port: '3000' }));
+net.run(dstDir);
+```
 ## Architecture
-The structure of input config is shown below:
+The structure of internal config is shown below:
 ```
 {
   nodes: [{ id, title, x, y, type, applications }],
