@@ -21,7 +21,7 @@ However, not all systems are supported. Current supported systems:
 * Linux x64
 ## Standalone usage
 Example usage script:
-```
+```js
 const Simulator = require('net-runner-engine');
 cosnt fs = require('path');
 cosnt fs = require('fs');
