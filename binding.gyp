@@ -1,5 +1,6 @@
 {
   'variables': {
+    'openssl_fips': '',
     'includeDir': '<!(node -p \"require(\'./install/ns3\').includeDir\")',
     'libDir': '<!(node -p \"require(\'./install/ns3\').libDir\")',
     'boostDir': '<!(node -p \"require(\'./install/ns3\').boostDir\")',
@@ -17,7 +18,10 @@
       'xcode_settings': {
         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
         'CLANG_CXX_LIBRARY': 'libc++',
-        'MACOSX_DEPLOYMENT_TARGET': '10.7'
+        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+        'OTHER_LDFLAGS': [
+          '-Wl,-rpath,\'<(rpath)\'',
+        ],
       },
       'msvs_settings': {
         'VCCLCompilerTool': { 'ExceptionHandling': 1 }

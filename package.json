@@ -21,10 +21,10 @@
   "author": "Valentina K <sabrinarempel7@gmail.com>",
   "license": "GPL-3.0",
   "description": "Node.js ns-3 wrapper",
-  "homepage": "https://github.com/hedonist666/net-runner-engine",
+  "homepage": "https://github.com/vaguue/net-runner-engine",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hedonist666/net-runner-engine"
+    "url": "git://github.com/vaguue/net-runner-engine"
   },
   "binary": {
     "napi_versions": [
