@@ -23,8 +23,8 @@ However, not all systems are supported. Current supported systems:
 Example usage script:
 ```js
 const Simulator = require('net-runner-engine');
-cosnt fs = require('path');
-cosnt fs = require('fs');
+const fs = require('path');
+const fs = require('fs');
 
 const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer } = Simulator;
 
@@ -42,6 +42,7 @@ hosts[0].setupApplication(new TCPClient({ dst: '192.168.1.2', port: '3000' }));
 hosts[2].setupApplication(new TCPServer({ port: '3000' }));
 net.run(dstDir);
 ```
+After running this script you'll see appropriate PCAP files for each interface of each network's node in 'files' directory.
 ## Architecture
 The structure of internal config is shown below:
 ```
