@@ -38,8 +38,8 @@ const hosts = [...Array(3).keys()].map((_, i) => new Host({ x: 100*i, y: 100*i }
 const hub = new Hub({ x: 0, y: 100 });
 net.addNode(hub);
 hosts.map((e, i) => e.connect(hub, { sourceIP: `192.168.1.${i}`, targetIP: `192.168.1.${hosts.length + i}` }));
-hosts[0].setupApplication(new TCPClient({ dst: '192.168.1.2', port: '3000' }));
-hosts[2].setupApplication(new TCPServer({ port: '3000' }));
+hosts[0].setupApplication(new TCPClient({ dst: '192.168.1.2' }));
+hosts[2].setupApplication(new TCPServer({ dst: '3000' }));
 net.run(dstDir);
 ```
 After running this script you'll see appropriate PCAP files for each interface of each network's node in 'files' directory.
