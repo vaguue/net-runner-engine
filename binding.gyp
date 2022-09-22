@@ -9,12 +9,12 @@
   'targets': [
     {
       'target_name': 'wrapper-native',
-      'sources': ['src/wrapper.cc'],
+      'sources': ['src/wrapper.cc', 'src/fromConfig.cc', 'src/fromJs.cc', 'src/initTracing.cc', 'src/setupApplications.cc', 'src/setupConnections.cc'],
       'include_dirs': ['<!@(node -p \"require(\'node-addon-api\').include\")', '<(boostDir)','<(includeDir)', '<(includeDir)/ns3-dev', '<(includeDir)/openflow'],
       'dependencies': ['<!(node -p \"require(\'node-addon-api\').gyp\")'],
       'cflags!': ['-fno-exceptions'],
       'cflags_cc!': ['-fno-exceptions', '-fno-rtti'],
-      'cflags_cc': ['--std=c++17', '-lstdc++fs', '-I<(includeDir)', '-L<(libDir)'],
+      'cflags_cc': ['-Wno-literal-suffix', '--std=c++17', '-lstdc++fs', '-I<(includeDir)', '-L<(libDir)'],
       'xcode_settings': {
         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
         'CLANG_CXX_LIBRARY': 'libc++',

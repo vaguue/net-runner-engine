@@ -1,5 +1,13 @@
 #include "wrapper.h"
 
+using namespace Napi;
+using namespace ns3;
+using namespace std;
+
+#define int uint32_t
+
+extern struct DebugStream debug;
+
 void LogPacket(Ptr<PcapFileWrapper> file, Ptr<const Packet> p) {
   file->Write(Simulator::Now (), p);
 }
@@ -62,3 +70,5 @@ Napi::Value Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
   }
   return env.Null();
 }
+
+#undef int

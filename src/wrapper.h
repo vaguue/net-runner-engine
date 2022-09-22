@@ -37,8 +37,6 @@ struct DebugStream {
   }
 };
 
-DebugStream debug {true};
-
 struct options {
   bool populateIP = true;
   bool verbose = false;
@@ -105,3 +103,14 @@ struct  Wrapper : public Napi::ObjectWrap<Wrapper>
   std::string _greeterName;
   ns3::AnimationInterface* animePointer;
 };
+
+#define toNumber(x) Napi::Number(env, (x))
+#define asString(x) (x).As<Napi::String>().Utf8Value()
+
+application getApplication(const Napi::Object& obj);
+NodeCont getNodes(const Napi::Object& config);
+GraphCont getGraph(const Napi::Object& config);
+AddrCont getAddrInfo(const Napi::Object& config);
+options getOpitons(const Napi::Object& config);
+void setupApplications(NodeCont& myNodes, const options& opts);
+void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont& addrInfo);

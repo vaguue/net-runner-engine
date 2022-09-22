@@ -4,12 +4,6 @@ using namespace Napi;
 using namespace ns3;
 using namespace std;
 
-#define toNumber(x) Napi::Number(env, (x))
-#define asString(x) (x).As<Napi::String>().Utf8Value()
-
-#include "fromConfig.cc"
-#include "initTracing.cc"
-
 Wrapper::Wrapper(const Napi::CallbackInfo& info) : ObjectWrap(info)/*, echoServer(9)*/ {
   if (info.Length() > 1) {
     auto options = info[1].As<Napi::Object>();
