@@ -52,6 +52,7 @@ NodeCont getNodes(const Napi::Object& config) {
     auto y = nodesArray.Get(i).As<Napi::Object>().Get("y").As<Napi::Number>().DoubleValue();
     auto type = string(nodesArray.Get(i).As<Napi::Object>().Get("type").As<Napi::String>());
     MyNode n(id, x, y, type);
+    n.init = nodesArray.Get(i).As<Napi::Object>();
     if (type == "wifi") {
       auto ssid = string(nodesArray.Get(i).As<Napi::Object>().Get("ssid").As<Napi::String>());
       auto apIP = string(nodesArray.Get(i).As<Napi::Object>().Get("apIP").As<Napi::String>());
@@ -91,13 +92,42 @@ AddrCont getAddrInfo(const Napi::Object& config) {
     auto obj = edgesArray.Get(i).As<Napi::Object>();
     auto source = obj.Get("source").As<Napi::Number>().Uint32Value();
     auto target = obj.Get("target").As<Napi::Number>().Uint32Value();
-    addr[source][target] = obj.Get("sourceIP").As<Napi::String>().Utf8Value();
-    addr[target][source] = obj.Get("targetIP").As<Napi::String>().Utf8Value();
-    debug << source << ' ' << target << ' ' << addr[source][target] << endl;
-    debug << target << ' ' << source << ' ' << addr[target][source] << endl;
+    if (obj.Has("sourceIP")) {
+      addr[source][target] = obj.Get("sourceIP").As<Napi::String>().Utf8Value();
+    }
+    if (obj.Has("targetIP")) {
+      addr[target][source] = obj.Get("targetIP").As<Napi::String>().Utf8Value();
+    }
+    debug << "[DEBUG] " << source << ' ' << target << ' ' << addr[source][target] << endl;
+    debug << "[DEBUG] " << target << ' ' << source << ' ' << addr[target][source] << endl;
   }
   return addr;
 }
+
+ConnectionDataCont getConnectionData(const Napi::Object& config, NodeCont& myNodes) {
+  auto edgesArray = config.Get("edges").As<Napi::Array>();
+  auto nodesArray = config.Get("nodes").As<Napi::Array>();
+  ConnectionDataCont conn(nodesArray.Length(), vector<ConnectionData>(nodesArray.Length()));
+  for (int i = 0; i < edgesArray.Length(); ++i) {
+    auto obj = edgesArray.Get(i).As<Napi::Object>();
+    auto source = obj.Get("source").As<Napi::Number>().Uint32Value();
+    auto target = obj.Get("target").As<Napi::Number>().Uint32Value();
+    auto sourceNode = myNodes[source];
+    auto targetNode = myNodes[target];
+    if (sourceNode.type != "hub" && targetNode.type != "hub") {
+      ConnectionData tmp;
+      if (obj.Has("dataRate")) {
+        tmp.customDataRate = string(obj.Get("dataRate").As<Napi::String>());
+      }
+      if (obj.Has("delay")) {
+        tmp.customDelay = string(obj.Get("delay").As<Napi::String>());
+      }
+      conn[source][target] = tmp;
+      conn[target][source] = tmp;
+    }
+  }
+  return conn;
+};
 
 options getOpitons(const Napi::Object& config) {
   options res;

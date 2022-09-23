@@ -8,12 +8,8 @@ using namespace std;
 
 extern struct DebugStream debug;
 
-//const int CustomDataRate = 100000;
-const string CustomDataRate = "5Mbps";
-const int CustomDelay = 5;
-
 void CustomAssign (Ptr<NetDevice> device, string addr) {
-  debug << "[*] assigning " << addr << endl;
+  debug << "[DEBUG] assigning " << addr << endl;
   Ptr<Node> node = device->GetNode ();
   Ptr<Ipv4> ipv4 = node->GetObject<Ipv4> ();
 
@@ -79,7 +75,7 @@ inline vector<pair<int, int>> getChildren(NodeCont& myNodes, const GraphCont& gr
           q.push(v);
         }
         else {
-          debug << "BFS: adding " << v << ' ' << i << ' ' << addrInfo[v][i] << endl;
+          debug << "[DEBUG] BFS: adding " << v << ' ' << i << ' ' << addrInfo[v][i] << endl;
           res.push_back(make_pair(v, i));
         }
       }
@@ -88,7 +84,7 @@ inline vector<pair<int, int>> getChildren(NodeCont& myNodes, const GraphCont& gr
   return res;
 }
 
-void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont& addrInfo) {
+void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont& addrInfo, const ConnectionDataCont& connectionData) {
   for (auto& keyVal : myNodes) {
     auto& e = keyVal.second;
     if (e.type == "pc" || e.type == "wifi") {
@@ -103,11 +99,16 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
     auto& e = keyVal.second;
     if (e.type == "hub") { //TODO doesnt work
       if (hubWas[i]) continue;
-      //debug << "initializating hub network from " << i << endl;
+      ConnectionData con;
+      if (e.init.Has("dataRate")) {
+        con.customDataRate = string(e.init.Get("dataRate").As<Napi::String>());
+      }
+      if (e.init.Has("delay")) {
+        con.customDelay = string(e.init.Get("delay").As<Napi::String>());
+      }
       CsmaHelper csma; //TODO config options
-      //csma.SetChannelAttribute ("DataRate", DataRateValue (CustomDataRate));
-      csma.SetChannelAttribute ("DataRate", StringValue (CustomDataRate));
-      csma.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (CustomDelay)));
+      csma.SetChannelAttribute ("DataRate", StringValue(con.customDataRate));
+      csma.SetChannelAttribute ("Delay", StringValue(con.customDelay));
       NodeContainer hubNetwork;
       auto hubChildren = getChildren(myNodes, graph, addrInfo, i, hubWas);
       for (auto& chPr : hubChildren) {
@@ -122,7 +123,7 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
         child.devs.Add(link.Get(j));
         addDevName(child, e, "hub-csma");
         if (child.type == "pc") {
-          debug << "assigning from hub " << addrInfo[v][chPr.second] << endl;
+          debug << "[DEBUG] assigning from hub " << addrInfo[v][chPr.second] << endl;
           CustomAssign(child.devs.Get(child.devs.GetN() - 1), addrInfo[v][chPr.second]);
         }
         was[chPr.second][v] = true;
@@ -137,10 +138,11 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
     if (e.type == "switch") {
       CsmaHelper csma; //TODO config options
       //csma.SetChannelAttribute ("DataRate", DataRateValue (CustomDataRate));
-      csma.SetChannelAttribute ("DataRate", StringValue (CustomDataRate));
-      csma.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (CustomDelay)));
       for (auto v : graph[i]) {
         auto& child = myNodes[v];
+        auto con = connectionData[v][i];
+        csma.SetChannelAttribute ("DataRate", StringValue(con.customDataRate));
+        csma.SetChannelAttribute ("Delay", StringValue(con.customDelay));
         if (was[i][v]) continue;
         NetDeviceContainer link = csma.Install (NodeContainer(child.node, e.node));
 
@@ -153,7 +155,7 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
         //e.devNames.push_back("switch-csma-" + e.id);
 
         if (child.type == "pc") {
-          debug << "assigning from switch " << v << endl;
+          debug << "[DEBUG] assigning from switch " << v << endl;
           CustomAssign(child.devs.Get(child.devs.GetN() - 1), addrInfo[v][i]);
         }
         was[i][v] = true;
@@ -162,7 +164,7 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
       OpenFlowSwitchHelper swtch;
       bool useDrop = false; //TODO config options;
       Time timeout = Seconds (0);
-      debug << "switch dev numer: " << e.devs.GetN() << endl;
+      debug << "[DEBUG] switch dev numer: " << e.devs.GetN() << endl;
       if (useDrop)
       {
         Ptr<ofi::DropController> controller = CreateObject<ofi::DropController> ();
@@ -214,9 +216,12 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
       int j = graph[i][k];
       if (myNodes[i].type == "pc" && myNodes[j].type == "pc" && !was[i][j] && !was[j][i]) {
         PointToPointHelper pointToPoint;
-        //pointToPoint.SetDeviceAttribute ("DataRate", DataRateValue (CustomDataRate)); //TODO config options
-        pointToPoint.SetDeviceAttribute ("DataRate", StringValue (CustomDataRate)); //TODO config options
-        pointToPoint.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (CustomDelay)));
+        auto con = connectionData[i][j];
+        DEBUG(i);
+        DEBUG(j);
+        DEBUG(con);
+        pointToPoint.SetDeviceAttribute("DataRate", StringValue("5Mbps"));
+        pointToPoint.SetChannelAttribute("Delay", StringValue(con.customDelay));
 
         NetDeviceContainer p2pDevices;
         p2pDevices = pointToPoint.Install (myNodes[i].node.Get(0), myNodes[j].node.Get(0));

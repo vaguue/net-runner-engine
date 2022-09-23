@@ -31,11 +31,14 @@ struct DebugStream {
   bool enabled;
   DebugStream(bool enabled = false, std::ostream &output = std::cout) : output(output), enabled(enabled) {}
   void enable(const bool enable) { enabled = enable; }
-  template <typename T> std::ostream& operator<<(const T &arg) {
-      if (enabled) return output << arg;
-      else return null << arg;
+  template <typename T> 
+  std::ostream& operator<<(const T& arg) {
+    if (enabled) return output << arg;
+    else return null << arg;
   }
 };
+
+#define DEBUG(x) debug << "[DEBUG] " << #x << ": " << (x) << endl;
 
 struct options {
   bool populateIP = true;
@@ -72,6 +75,7 @@ struct MyNode {
   ns3::NodeContainer node;
   ns3::NetDeviceContainer devs;
   std::vector<std::string> devNames;
+  Napi::Object init;
 //wifi only
   std::string ssid;
   std::string apIP;
@@ -84,8 +88,16 @@ using NodeCont = std::map<int, MyNode>;
 using GraphCont = std::vector<std::vector<int>>;
 using AddrCont = std::vector<std::vector<std::string>>;
 
-struct  Wrapper : public Napi::ObjectWrap<Wrapper>
-{
+struct ConnectionData {
+  //int CustomDataRate = 100000;
+  //int customDelay = 5;
+  std::string customDataRate = "5Mbps";
+  std::string customDelay = "5ms";
+};
+
+using ConnectionDataCont = std::vector<std::vector<ConnectionData>>;
+
+struct Wrapper : public Napi::ObjectWrap<Wrapper> {
   Wrapper(const Napi::CallbackInfo&);
   void clear();
   ns3::NodeContainer getConfigNodes(const Napi::Object&);
@@ -104,6 +116,42 @@ struct  Wrapper : public Napi::ObjectWrap<Wrapper>
   ns3::AnimationInterface* animePointer;
 };
 
+/*template <typename T>
+std::ostream& operator<<(std::ostream& os, std::vector<T>& p);
+template<typename T, typename R>
+std::ostream& operator<<(std::ostream& os, std::map<T, R>& p);
+std::ostream& operator<<(std::ostream& os, ConnectionData& p);*/
+
+template <typename T>
+std::ostream& operator<<(std::ostream& os, std::vector<T>& p) {
+  os << '{';
+  for (size_t i = 0; i < p.size(); ++i) {
+    if (i) os << ' ';
+    os << p[i];
+  }
+  os << '}';
+  return os;
+}
+
+template<typename T, typename R>
+std::ostream& operator<<(std::ostream& os, std::map<T, R>& p) {
+  os << '{';
+  bool first = true;
+  for (auto e : p) {
+    if (!first) os << ' ';
+    first = false;
+    os << e;
+  }
+  os << '}';
+  return os;
+}
+
+template<typename T = ConnectionData>
+std::ostream& operator<<(std::ostream& os, ConnectionData& p) {
+  os << "ConnectionData{" << p.customDataRate << ' ' << p.customDelay << '}';
+  return os;
+}
+
 #define toNumber(x) Napi::Number(env, (x))
 #define asString(x) (x).As<Napi::String>().Utf8Value()
 
@@ -111,6 +159,7 @@ application getApplication(const Napi::Object& obj);
 NodeCont getNodes(const Napi::Object& config);
 GraphCont getGraph(const Napi::Object& config);
 AddrCont getAddrInfo(const Napi::Object& config);
+ConnectionDataCont getConnectionData(const Napi::Object& config, NodeCont& myNodes);
 options getOpitons(const Napi::Object& config);
 void setupApplications(NodeCont& myNodes, const options& opts);
-void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont& addrInfo);
+void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont& addrInfo, const ConnectionDataCont& connectionData);

@@ -13,12 +13,12 @@ void LogPacket(Ptr<PcapFileWrapper> file, Ptr<const Packet> p) {
 }
 
 Napi::Value Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
-  debug << "nodes count: " << myNodes.size() << endl;
+  DEBUG(myNodes.size());
   PcapHelper pcapHelper;
   Ptr<PcapFileWrapper> file = pcapHelper.CreateFile(fns::path{this->pcapPath} / fns::path{"main.pcap"}, std::ios::out, PcapHelper::DLT_PPP);
   for (auto& keyVal : myNodes) {
     auto& e = keyVal.second;
-    debug << "working with node " << e.id << ' ' << e.type << ' ' << e.devs.GetN() << endl;
+    debug << "[DEBUG] working with node " << e.id << ' ' << e.type << ' ' << e.devs.GetN() << endl;
     uint32_t i = 0;
     for (auto it = e.devs.Begin(); i < e.devs.GetN(); ++i) {
       CsmaHelper csma;
@@ -53,7 +53,7 @@ Napi::Value Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
   int i = 0;
   for (auto& keyVal : myNodes) {
     auto& e = keyVal.second;
-    debug << "setting for node " << e.node.Get(0) << ' ' << i << endl;
+    debug << "[DEBUG] setting for node " << e.node.Get(0) << ' ' << i << endl;
     animePointer->SetConstantPosition (e.node.Get(0), e.x, e.y);
     i += 1;
   }

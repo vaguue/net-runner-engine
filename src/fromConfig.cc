@@ -32,22 +32,19 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
   auto myNodes = getNodes(config);
   auto graph = getGraph(config);
   auto addrInfo = getAddrInfo(config);
+  auto connectionData = getConnectionData(config, myNodes);
 
-  debug << "[*] graph:" << endl;
-  for (int i = 0; i < graph.size(); ++i) {
-    for (auto v : graph[i]) {
-      debug << i << ' ' << v << endl;
-    }
-  }
+  DEBUG(connectionData);
+  DEBUG(graph);
 
   setupNodes(myNodes);
-  debug << "[*] setted up nodes" << endl;
-  setupConnections(myNodes, graph, addrInfo);
-  debug << "[*] setted up connections" << endl;
+  debug << "[DEBUG] setted up nodes" << endl;
+  setupConnections(myNodes, graph, addrInfo, connectionData);
+  debug << "[DEBUG] setted up connections" << endl;
   setupApplications(myNodes, options);
-  debug << "[*] setted up applications" << endl;
+  debug << "[DEBUG] setted up applications" << endl;
 
-  debug << "[*] setted up" << endl;
+  debug << "[DEBUG] setted up" << endl;
   
   if (options.populateIP) {
     Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
