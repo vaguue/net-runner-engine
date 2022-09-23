@@ -47,20 +47,23 @@ NodeCont getNodes(const Napi::Object& config) {
   auto nodesArray = config.Get("nodes").As<Napi::Array>();
   NodeCont res;
   for (int i = 0; i < nodesArray.Length(); ++i) {
-    auto id = nodesArray.Get(i).As<Napi::Object>().Get("id").As<Napi::Number>().Uint32Value();
-    auto x = nodesArray.Get(i).As<Napi::Object>().Get("x").As<Napi::Number>().DoubleValue();
-    auto y = nodesArray.Get(i).As<Napi::Object>().Get("y").As<Napi::Number>().DoubleValue();
-    auto type = string(nodesArray.Get(i).As<Napi::Object>().Get("type").As<Napi::String>());
+    auto cur = nodesArray.Get(i).As<Napi::Object>();
+    auto id = cur.Get("id").As<Napi::Number>().Uint32Value();
+    auto x = cur.Get("x").As<Napi::Number>().DoubleValue();
+    auto y = cur.Get("y").As<Napi::Number>().DoubleValue();
+    auto type = string(cur.Get("type").As<Napi::String>());
+    string name = cur.Has("name") && cur.Get("name").IsString() ? string(cur.Get("name").As<Napi::String>()) : "";
     MyNode n(id, x, y, type);
     n.init = nodesArray.Get(i).As<Napi::Object>();
+    n.name = name;
     if (type == "wifi") {
-      auto ssid = string(nodesArray.Get(i).As<Napi::Object>().Get("ssid").As<Napi::String>());
-      auto apIP = string(nodesArray.Get(i).As<Napi::Object>().Get("apIP").As<Napi::String>());
+      auto ssid = string(cur.Get("ssid").As<Napi::String>());
+      auto apIP = string(cur.Get("apIP").As<Napi::String>());
       n.ssid = ssid;
       n.apIP = apIP;
     }
-    if (nodesArray.Get(i).As<Napi::Object>().Has("applications")) {
-      auto apps = nodesArray.Get(i).As<Napi::Object>().Get("applications").As<Napi::Array>();
+    if (cur.Has("applications")) {
+      auto apps = cur.Get("applications").As<Napi::Array>();
       for (int j = 0; j < apps.Length(); ++j) {
         n.apps.push_back(getApplication(apps.Get(j).As<Napi::Object>()));
       }

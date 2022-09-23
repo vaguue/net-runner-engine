@@ -1,4 +1,5 @@
 #include "wrapper.h"
+#include "ns3/mobility-helper.h"
 
 using namespace Napi;
 using namespace ns3;
@@ -50,10 +51,13 @@ Napi::Value Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
   string animFile = fns::path{this->pcapPath} / fns::path{"anime.xml"};
   animePointer = new AnimationInterface(animFile);
   animePointer->SetMobilityPollInterval (Seconds (1));
+  MobilityHelper mobility;
   int i = 0;
   for (auto& keyVal : myNodes) {
     auto& e = keyVal.second;
     debug << "[DEBUG] setting for node " << e.node.Get(0) << ' ' << i << endl;
+    mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+    mobility.Install(e.node);
     animePointer->SetConstantPosition (e.node.Get(0), e.x, e.y);
     i += 1;
   }

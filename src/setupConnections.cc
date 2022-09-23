@@ -53,7 +53,8 @@ void addDevName(MyNode& node, const MyNode& other, string name) {
     }
   }
   stringstream ss;
-  ss << node.id << '-' << other.id << '-' << name << '-' << i;
+  ss << node.getName() << '-' << other.getName() << '-' << name << '-' << i;
+  DEBUG(ss.str());
   node.devNames.push_back(ss.str());
 }
 

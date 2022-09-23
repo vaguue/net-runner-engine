@@ -6,7 +6,7 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 
-const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer } = Simulator;
+const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer, UDPClient, UDPServer } = Simulator;
 
 const dstDir = path.resolve(__dirname, 'files');
 if (!fs.existsSync(dstDir)) {
@@ -29,19 +29,54 @@ async function f2() {
   hosts[0].setupApplication(new TCPClient({ dst: '192.168.1.2:3000' }));
   hosts[2].setupApplication(new TCPServer({ dst: '3000' }));
   net.run(dstDir);
+  console.log('[*] done');
 }
 
 async function f3() {
-  const net = new Network();
-  net.setOptions({ verbose: true });
-  const host1 = new Host();
-  const host2 = new Host();
-  host1.setupApplication(new TCPClient({ dst: '192.168.1.3:3000' }));
-  host2.setupApplication(new TCPServer({ dst: '3000' }));
-  net.addNode(host1);
+  const net = new Network({ 
+    animeLen: 5, // seconds, default is 10
+  });
+  const host1 = new Host({ 
+    name: 'Alice', // this name will be used in resulting PCAP files, optional (some numbers will be used if not specified, e.g. 0-1-hub-csma-0.pcap)
+  });
+  const host2 = new Host({ name: 'Bob' });
+  host1.setupApplication(new TCPClient({ 
+    dst: '192.168.1.3:3000', // accepts dst in format <IP address>:<port>
+  }));
+  host2.setupApplication(new TCPServer({ 
+    dst: '3000', // accepts only port number via dst field,
+  }));
+  // each host should be added to network BEFORE conneting
+  net.addNode(host1); 
   net.addNode(host2);
-  host1.connect(host2, { sourceIP: '192.168.1.2', targetIP: '192.168.1.3', dataRate: '50Mbps', delay: '1ms' });
+  // connecting two hosts
+  host1.connect(host2, { 
+    sourceIP: '192.168.1.2', //IP of host1's device, required for Host node
+    targetIP: '192.168.1.3', //IP of host2's device, required for Host node
+    dataRate: '1Mbps', //optional, default is 5Mbps
+    delay: '1ms', //optional, default is 5ms
+  });
+
+  //Openflow switch example
+  const swtch = new Switch({ name: 'MyHomeSwitch' });
+  net.addNode(swtch);
+  const n = 4;
+  const half = Math.floor(n / 2);
+  const hosts = [...Array(n).keys()].map((_, i) => new Host({ name: `user${i + 1}` }));
+  for (let i = 0; i < n; ++i) {
+    net.addNode(hosts[i]);
+    hosts[i].connect(swtch, {
+      sourceIP: `192.168.0.${i + 1}`, //NOTE: Switch does not have IP address, only host
+    });
+  }
+  //setting up UDP clients and servers
+  for (let i = 0; i < half; ++i) {
+    hosts[i].setupApplication(new UDPClient({ dst: `192.168.0.${i + half}:8888` }));
+    hosts[n - i - 1].setupApplication(new UDPServer({ dst: '8888' }));
+  }
+  console.log(JSON.stringify(net.toObject(), null, 2));
   net.run(dstDir);
+  console.log('[*] done');
 }
 
 f3();

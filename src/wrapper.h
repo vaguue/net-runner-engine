@@ -41,7 +41,7 @@ struct DebugStream {
 #define DEBUG(x) debug << "[DEBUG] " << #x << ": " << (x) << endl;
 
 struct options {
-  bool populateIP = true;
+  bool populateIP = false;
   bool verbose = false;
   double animeLen = 10;
 };
@@ -70,6 +70,7 @@ struct MyNode {
   double x;
   double y;
   std::string type;
+  std::string name = "";
   std::vector<application> apps;
   //Ptr<Node> node;
   ns3::NodeContainer node;
@@ -82,6 +83,10 @@ struct MyNode {
 //
   MyNode(int id, double x, double y, std::string type) : id{id}, x{x}, y{y}, type{type} {};
   MyNode() {};
+  std::string getName() const {
+    if (name.size() > 0) return name;
+    return std::to_string(id);
+  };
 };
 
 using NodeCont = std::map<int, MyNode>;
