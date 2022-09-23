@@ -48,21 +48,9 @@ struct options {
 
 struct application {
   std::string type;
-  std::string src;
-  std::string dst;
-  std::string port;
   Napi::Object init;
-//upd only
-  int maxPackets = 20;
-  int packetSize = 256;
-  //double interval = 1.0;
-  double interval = 0.5;
-//
-//tcp only
-  int maxBytes = 0;
-//
-  double start = 0;
-  double stop = -1;
+  std::string start = "0s";
+  std::string stop = "end";
 };
 
 struct MyNode {

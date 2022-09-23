@@ -21,23 +21,11 @@ extern struct DebugStream debug;
 application getApplication(const Napi::Object& obj) {
   application res;
   res.type = obj.Get("type").As<Napi::String>();
-  if (obj.Has("dst")) {
-    res.dst = obj.Get("dst").As<Napi::String>();
+  if (obj.Has("start")) {
+    res.start = obj.Get("start").As<Napi::String>();
   }
-  if (obj.Has("src")) {
-    res.src = obj.Get("src").As<Napi::String>();
-  }
-  if (obj.Has("port")) {
-    res.port = obj.Get("port").As<Napi::String>();
-  }
-  if (obj.Has("interval")) {
-    res.interval = obj.Get("interval").As<Napi::Number>().DoubleValue();
-  }
-  if (obj.Has("packetSize")) {
-    res.packetSize = obj.Get("packetSize").As<Napi::Number>().Uint32Value();
-  }
-  if (obj.Has("maxPackets")) {
-    res.maxPackets = obj.Get("maxPackets").As<Napi::Number>().Uint32Value();
+  if (obj.Has("stop")) {
+    res.stop = obj.Get("stop").As<Napi::String>();
   }
   res.init = obj;
   return res;
