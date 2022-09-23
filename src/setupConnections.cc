@@ -106,6 +106,7 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
       if (e.init.Has("delay")) {
         con.customDelay = string(e.init.Get("delay").As<Napi::String>());
       }
+      DEBUG(con);
       CsmaHelper csma; //TODO config options
       csma.SetChannelAttribute ("DataRate", StringValue(con.customDataRate));
       csma.SetChannelAttribute ("Delay", StringValue(con.customDelay));
@@ -220,7 +221,7 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
         DEBUG(i);
         DEBUG(j);
         DEBUG(con);
-        pointToPoint.SetDeviceAttribute("DataRate", StringValue("5Mbps"));
+        pointToPoint.SetDeviceAttribute("DataRate", StringValue(con.customDataRate));
         pointToPoint.SetChannelAttribute("Delay", StringValue(con.customDelay));
 
         NetDeviceContainer p2pDevices;

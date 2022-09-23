@@ -37,7 +37,7 @@ const net = new Network();
 const hosts = [...Array(3).keys()].map((_, i) => new Host({ x: 100*i, y: 100*i })).map(e => net.addNode(e));
 const hub = new Hub({ x: 0, y: 100 });
 net.addNode(hub);
-hosts.map((e, i) => e.connect(hub, { sourceIP: `192.168.1.${i}`, targetIP: `192.168.1.${hosts.length + i}` }));
+hosts.map((e, i) => e.connect(hub, { sourceIP: `192.168.1.${i}` }));
 hosts[0].setupApplication(new TCPClient({ dst: '192.168.1.2:3000' }));
 hosts[2].setupApplication(new TCPServer({ dst: '3000' }));
 net.run(dstDir);

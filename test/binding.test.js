@@ -107,3 +107,15 @@ test('Can run verbosely', () => {
   net.setOptions({ verbose: true });
   expect(() => net.run(dstDir)).not.toThrow();
 });
+
+test('Can run with custom delay and data rate', () => {
+  const net = new Network();
+  const host1 = new Host();
+  const host2 = new Host();
+  host1.setupApplication(new TCPClient({ dst: '192.168.1.3:3000' }));
+  host2.setupApplication(new TCPServer({ dst: '3000' }));
+  net.addNode(host1);
+  net.addNode(host2);
+  host1.connect(host2, { sourceIP: '192.168.1.2', targetIP: '192.168.1.3', dataRate: '10Mbps', delay: '5ms' });
+  expect(() => net.run(dstDir)).not.toThrow();
+});
