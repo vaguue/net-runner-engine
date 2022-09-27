@@ -104,17 +104,18 @@ async function f5() {
   });
   const host1 = new Host({ name: 'TcpClient' });
   const host2 = new Host({ name: 'TcpServer' });
-  host1.setupApplication(new TCPClient({ 
+  host1.setupApplication(new UDPClient({ 
     dst: '192.168.1.3:3000', 
-    tickInterval: '1ms',
-    onTick: ({ time, sendPacket }) => {
+    //tickInterval: '1ms',
+    onTick: ({ time, sendPacket, tick }) => {
       if (time > 1000) {
         const buf = Buffer.from("hello\0");
         sendPacket(buf);
       }
+      tick('1s');
     },
   }));
-  host2.setupApplication(new TCPServer({ dst: 3000 }));
+  host2.setupApplication(new UDPServer({ dst: 3000 }));
   net.addNode(host1); 
   net.addNode(host2);
   host1.connect(host2, { 

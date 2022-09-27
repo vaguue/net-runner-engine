@@ -40,12 +40,13 @@ struct JsApp : public Application {
   virtual ~JsApp ();
   virtual void StartApplication(void);
   virtual void StopApplication(void);
-  void tick();
+  void tick(string delay = "");
   void callOnTick();
 
   const Napi::CallbackInfo* info = nullptr;
   Napi::Function onTick;
   Napi::Function premadeCallback;
+  Napi::Function tickFromJs;
   Ptr<Socket> socket;
   void setup(const Napi::CallbackInfo* info, Ptr<Socket> socket, Address address, Napi::Function onTick, string interval);
   Address peer;
@@ -78,7 +79,15 @@ void JsApp::setup(const Napi::CallbackInfo* info, Ptr<Socket> socket, Address ad
       this->socket->Send(pkt);
     }
   };
+  function<void(const Napi::CallbackInfo& info)> tickFromJsF = [this](const Napi::CallbackInfo& info) {
+    string delay = "";
+    if (info.Length() > 0) {
+      delay = info[0].As<Napi::String>();
+    }
+    tick(delay);
+  };
   premadeCallback = Napi::Function::New(info->Env(), sendPacket);
+  tickFromJs = Napi::Function::New(info->Env(), tickFromJsF);
 }
 void JsApp::StartApplication (void) {
   running = true;
@@ -100,9 +109,10 @@ void JsApp::StopApplication (void) {
     socket->Close();
   }
 }
-void JsApp::tick() {
+void JsApp::tick(string customDelay) {
+  string resDelay = interval.size() > 0 ? interval : (customDelay.size() > 0 ? customDelay : "0ms");
   if (running) {
-    sendEvent = Simulator::Schedule(Time(interval), &JsApp::callOnTick, this);
+    sendEvent = Simulator::Schedule(Time(resDelay), &JsApp::callOnTick, this);
   }
 }
 void JsApp::callOnTick() {
@@ -110,8 +120,13 @@ void JsApp::callOnTick() {
   Napi::Object arg = Napi::Object::New(env);
   arg.Set("time", Simulator::Now().GetMilliSeconds());
   arg.Set("sendPacket", premadeCallback);
+  if (interval.size() == 0) {
+    arg.Set("tick", tickFromJs);
+  }
   onTick.Call({arg});
-  tick();
+  if (interval.size() > 0) {
+    tick();
+  }
 }
 
 struct PingInfo {
@@ -195,6 +210,7 @@ struct TcpServerInfo {
 };
 
 struct UdpClientInfo {
+  const Napi::CallbackInfo& info;
   string addr;
   int port;
 
@@ -204,7 +220,11 @@ struct UdpClientInfo {
   string dataRate = "5Mbps";
   bool bulk = false;
 
-  UdpClientInfo(const Napi::Object& init, const Napi::CallbackInfo& info) {
+  Napi::Function onTick;
+  string tickInterval = "";
+  bool useTicks = false;
+
+  UdpClientInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
     string dst = init.Get("dst").As<Napi::String>();
     auto ipp = ipPort(dst);
     addr = ipp.first;
@@ -221,10 +241,26 @@ struct UdpClientInfo {
     if (init.Has("maxBytes")) {
       maxBytes = init.Get("maxBytes").As<Napi::Number>().Uint32Value();
     }
+
     bulk = init.Has("bulk");
+
+    if (init.Has("onTick") && init.Get("onTick").IsFunction()) {
+      useTicks = true;
+      onTick = init.Get("onTick").As<Napi::Function>();
+    }
+    if (init.Has("tickInterval") && init.Get("tickInterval").IsString()) {
+      tickInterval = init.Get("tickInterval").As<Napi::String>();
+    }
   }
   void install(ApplicationContainer& apps, MyNode& v) {
-    if (bulk) {
+    if (useTicks) {
+      Ptr<Socket> ns3UdpSocket = Socket::CreateSocket(v.node.Get(0), UdpSocketFactory::GetTypeId());
+      Ptr<JsApp> app = CreateObject<JsApp>();
+      app->setup(&info, ns3UdpSocket, Address(InetSocketAddress(Ipv4Address(addr.c_str()), port)), onTick, tickInterval);
+      v.node.Get(0)->AddApplication(app);
+      apps.Add(app);
+    }
+    else if (bulk) {
       BulkSendHelper source("ns3::UdpSocketFactory", InetSocketAddress (Ipv4Address (addr.c_str()), port));
       source.SetAttribute("MaxBytes", UintegerValue(maxBytes));
       apps = source.Install(v.node.Get(0));
@@ -271,10 +307,14 @@ struct TcpClientInfo {
     if (init.Has("maxBytes")) {
       maxBytes = init.Get("maxBytes").As<Napi::Number>().Uint32Value();
     }
-    if (init.Has("onTick") && init.Get("onTick").IsFunction() 
-        && init.Has("tickInterval") && init.Get("tickInterval").IsString()) {
+
+    bulk = init.Has("bulk");
+
+    if (init.Has("onTick") && init.Get("onTick").IsFunction()) {
       useTicks = true;
       onTick = init.Get("onTick").As<Napi::Function>();
+    }
+    if (init.Has("tickInterval") && init.Get("tickInterval").IsString()) {
       tickInterval = init.Get("tickInterval").As<Napi::String>();
     }
   }
