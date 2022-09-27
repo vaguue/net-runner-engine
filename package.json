@@ -33,13 +33,7 @@
       7
     ]
   },
-  "keywords": [
-    "ns3",
-    "ns-3",
-    "ns3-simulator",
-    "network-simulator",
-    "simulator"
-  ],
+  "keywords": ["ns3", "ns-3", "ns3-simulator", "network simulator", "network-simulator", "network", "udp", "tcp", "routing", "packet", "ip", "ipv4", "simulator"],
   "devDependencies": {
     "jest": "^29.0.1"
   }
