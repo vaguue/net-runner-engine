@@ -20,7 +20,7 @@
   "version": "1.0.7",
   "author": "Valentina K <sabrinarempel7@gmail.com>",
   "license": "GPL-3.0",
-  "description": "Node.js ns-3 wrapper",
+  "description": "Node.js ns3 wrapper",
   "homepage": "https://github.com/vaguue/net-runner-engine",
   "repository": {
     "type": "git",
@@ -34,8 +34,10 @@
     ]
   },
   "keywords": [
+    "ns3",
     "ns-3",
-    "network simulator",
+    "ns3-simulator",
+    "network-simulator",
     "simulator"
   ],
   "devDependencies": {

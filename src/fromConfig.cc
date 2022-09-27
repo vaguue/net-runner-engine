@@ -41,7 +41,7 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
   debug << "[DEBUG] setted up nodes" << endl;
   setupConnections(myNodes, graph, addrInfo, connectionData);
   debug << "[DEBUG] setted up connections" << endl;
-  setupApplications(myNodes, options);
+  setupApplications(myNodes, options, info);
   debug << "[DEBUG] setted up applications" << endl;
 
   debug << "[DEBUG] setted up" << endl;

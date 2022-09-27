@@ -67,7 +67,7 @@ Napi::Value Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
   for (auto& keyVal : myNodes) {
     auto& e = keyVal.second;
     if (e.type == "pc") {
-      auto path = fns::path{this->pcapPath} / fns::path{to_string(e.id) + "-arp.txt"};
+      auto path = fns::path{this->pcapPath} / fns::path{e.getName() + "-arp.txt"};
       Ipv4RoutingHelper::PrintNeighborCacheEvery(Seconds(0.01), e.node.Get(0), ascii.CreateFileStream(path));
       //routingTrace.PrintArpCacheEvery(0.1, e.node.Get(0), ascii.CreateFileStream(path));
     }

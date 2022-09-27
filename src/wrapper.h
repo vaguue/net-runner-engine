@@ -154,5 +154,5 @@ GraphCont getGraph(const Napi::Object& config);
 AddrCont getAddrInfo(const Napi::Object& config);
 ConnectionDataCont getConnectionData(const Napi::Object& config, NodeCont& myNodes);
 options getOpitons(const Napi::Object& config);
-void setupApplications(NodeCont& myNodes, const options& opts);
+void setupApplications(NodeCont& myNodes, const options& opts, const Napi::CallbackInfo& info);
 void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont& addrInfo, const ConnectionDataCont& connectionData);

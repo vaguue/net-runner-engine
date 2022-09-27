@@ -6,7 +6,7 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 
-const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer, UDPClient, UDPServer } = Simulator;
+const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer, UDPClient, UDPServer, Ping } = Simulator;
 
 const dstDir = path.resolve(__dirname, 'files');
 if (!fs.existsSync(dstDir)) {
@@ -79,4 +79,52 @@ async function f3() {
   console.log('[*] done');
 }
 
-f3();
+async function f4() {
+  const net = new Network({ 
+    animeLen: 5,
+  });
+  const host1 = new Host({ name: 'Pinger' });
+  const host2 = new Host({ name: 'PingTarget' });
+  host1.setupApplication(new Ping({ dst: '192.168.1.3', interval: '1s' }));
+  net.addNode(host1); 
+  net.addNode(host2);
+  host1.connect(host2, { 
+    sourceIP: '192.168.1.2',
+    targetIP: '192.168.1.3',
+    dataRate: '1Mbps',
+    delay: '1ms',
+  });
+  net.run(dstDir);
+  console.log('[*] done');
+}
+
+async function f5() {
+  const net = new Network({ 
+    animeLen: 5,
+  });
+  const host1 = new Host({ name: 'TcpClient' });
+  const host2 = new Host({ name: 'TcpServer' });
+  host1.setupApplication(new TCPClient({ 
+    dst: '192.168.1.3:3000', 
+    tickInterval: '1ms',
+    onTick: ({ time, sendPacket }) => {
+      if (time > 1000) {
+        const buf = Buffer.from("hello\0");
+        sendPacket(buf);
+      }
+    },
+  }));
+  host2.setupApplication(new TCPServer({ dst: 3000 }));
+  net.addNode(host1); 
+  net.addNode(host2);
+  host1.connect(host2, { 
+    sourceIP: '192.168.1.2',
+    targetIP: '192.168.1.3',
+    dataRate: '1Mbps',
+    delay: '1ms',
+  });
+  net.run(dstDir);
+  console.log('[*] done');
+}
+
+f5();
