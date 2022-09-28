@@ -42,9 +42,21 @@ const host1 = new Host({
 const host2 = new Host({ name: 'Bob' });
 host1.setupApplication(new TCPClient({ 
   dst: '192.168.1.3:3000', // accepts dst in format <IP address>:<port>
+  onTick: ({ time, sendPacket, tick }) => { // you can implement you custom logic here
+    if (time > 1000) {
+      const buf = Buffer.from("hello");
+      sendPacket(buf); //accepts Buffer only
+    }
+    tick('0.1s'); //call onTick after 0.1s
+  },
 }));
 host2.setupApplication(new TCPServer({ 
   dst: '3000', // accepts only port number via dst field,
+  onRecieve: ({ address, packet, reply }) => { // custom recieve callback
+    console.log('[*] recieve', address, packet);
+    const buf = Buffer.from("world?");
+    reply(buf);
+  },
 }));
 // each host should be added to network BEFORE conneting
 net.addNode(host1); 
@@ -71,8 +83,13 @@ for (let i = 0; i < n; ++i) {
 }
 //setting up UDP clients and servers
 for (let i = 0; i < half; ++i) {
-  hosts[i].setupApplication(new UDPClient({ dst: `192.168.0.${i + half}:8888` }));
-  hosts[n - i - 1].setupApplication(new UDPServer({ dst: '8888' }));
+  hosts[i].setupApplication(new UDPClient({ 
+    dst: `192.168.0.${i + half}:8888`, 
+    dataRate: '1Mbps', // without onTick provided, application will just generate traffic, default data rate is 5Mbps
+  }));
+  hosts[n - i - 1].setupApplication(new UDPServer({ 
+    dst: '8888' // here you could provide onRecieve, but this is optional
+  }));
 }
 net.run(dstDir);
 ```
@@ -103,8 +120,9 @@ Some tasks are marked done, which means you can use appropriate functionality on
 - [x] UDP client/server
 - [x] PCAP dumps (each interface)
 - [x] ARP table dumps(each host)
+- [x] Connection configuration (channel attributes)
+- [ ] Documentation
 - [ ] Routing table dumps 
-- [ ] Connection configuration (channel attributes)
 - [ ] Setting up IP/MAC addresses manually
 - [ ] DHCP server functionality
 - [ ] WIFI
