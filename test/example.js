@@ -100,7 +100,7 @@ async function f4() {
 
 async function f5() {
   const net = new Network({ 
-    animeLen: 5,
+    animeLen: 3,
   });
   const host1 = new Host({ name: 'TcpClient' });
   const host2 = new Host({ name: 'TcpServer' });
@@ -112,10 +112,17 @@ async function f5() {
         const buf = Buffer.from("hello\0");
         sendPacket(buf);
       }
-      tick('1s');
+      tick('0.1s');
     },
   }));
-  host2.setupApplication(new UDPServer({ dst: 3000 }));
+  host2.setupApplication(new UDPServer({ 
+    dst: 3000,
+    onRecieve: ({ address, packet, reply }) => {
+      console.log('[*] recieve', address, packet);
+      const buf = Buffer.from("world?");
+      reply(buf);
+    },
+  }));
   net.addNode(host1); 
   net.addNode(host2);
   host1.connect(host2, { 
@@ -128,4 +135,8 @@ async function f5() {
   console.log('[*] done');
 }
 
+//f1();
+//f2();
+//f3();
+//f4();
 f5();

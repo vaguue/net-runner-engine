@@ -34,6 +34,93 @@ pair<string, int> ipPort(string s) {
   return make_pair(ip, port);
 }
 
+Napi::String addrToJs(const Napi::CallbackInfo& info, Address addr) {
+  Napi::Env env = info.Env();
+  stringstream addrSS;
+  addrSS << InetSocketAddress::ConvertFrom(addr).GetIpv4()
+         << ':'
+         << InetSocketAddress::ConvertFrom(addr).GetPort();
+  return Napi::String::New(env, addrSS.str());
+}
+
+Napi::Buffer<char> packetToJs(const Napi::CallbackInfo& info, Ptr<const Packet> pkt) {
+  Napi::Env env = info.Env();
+  stringstream packetSS;
+  pkt->CopyData(&packetSS, pkt->GetSize());
+  string content = packetSS.str();
+  return Napi::Buffer<char>::Copy(env, content.c_str(), content.size());
+}
+
+struct JsSink : public Application {
+  JsSink();
+  static TypeId GetTypeId(void);
+  virtual ~JsSink ();
+  virtual void StartApplication(void);
+  virtual void StopApplication(void);
+
+  void setup(Ptr<Socket> socket, Address address, Callback<void, Ptr<Socket>> handleRead);
+
+  void HandleAccept(Ptr<Socket> socket, const Address& from);
+  void HandlePeerClose(Ptr<Socket> socket);
+  void HandlePeerError(Ptr<Socket> socket);
+
+  Callback<void, Ptr<Socket>> handleRead;
+  list<Ptr<Socket>> socketList;
+  Ptr<Socket> socket;
+  Address peer;
+  bool running;
+};
+
+void JsSink::HandleAccept(Ptr<Socket> s, const Address& from) {
+  s->SetRecvCallback(handleRead);
+  socketList.push_back(s);
+}
+void JsSink::HandlePeerClose(Ptr<Socket> socket) {
+}
+
+void JsSink::HandlePeerError(Ptr<Socket> socket) {
+
+}
+
+
+JsSink::JsSink() : socket(0), peer(), running(false) {}
+JsSink::~JsSink() { socket = 0; }
+TypeId JsSink::GetTypeId (void) {
+  static TypeId tid = TypeId("JsSink")
+    .SetParent<Application>()
+    .SetGroupName("Net-runner-engine")
+    .AddConstructor<JsSink>()
+    ;
+  return tid;
+}
+void JsSink::setup(Ptr<Socket> socket, Address address, Callback<void, Ptr<Socket>> handleRead) {
+  this->handleRead = handleRead;
+  this->socket = socket;
+  this->peer = address;
+}
+
+void JsSink::StartApplication (void) {
+  running = true;
+  socket->Bind(peer);
+  socket->Listen();
+  socket->SetAcceptCallback(MakeNullCallback<bool, Ptr<Socket>, const Address &>(), MakeCallback(&JsSink::HandleAccept, this));
+  socket->SetRecvPktInfo(true);
+  socket->SetAcceptCallback(MakeNullCallback<bool, Ptr<Socket>, const Address &> (), MakeCallback (&JsSink::HandleAccept, this));
+  socket->SetCloseCallbacks(MakeCallback (&JsSink::HandlePeerClose, this), MakeCallback (&JsSink::HandlePeerError, this));
+}
+void JsSink::StopApplication (void) {
+  running = false;
+  while(!socketList.empty()) {
+    Ptr<Socket> acceptedSocket = socketList.front ();
+    socketList.pop_front();
+    acceptedSocket->Close();
+  }
+  if (socket) {
+    socket->Close();
+    socket->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
+  }
+}
+
 struct JsApp : public Application {
   JsApp();
   static TypeId GetTypeId(void);
@@ -53,7 +140,6 @@ struct JsApp : public Application {
   EventId sendEvent;
   bool running;
   string interval = "0.1s";
-  int microSeconds = 0;
 };
 
 JsApp::JsApp() : socket(0), peer(), sendEvent(), running(false) {}
@@ -158,11 +244,41 @@ struct SinkInfo {
   }
 };
 
+void sinkRxTrace(const Napi::CallbackInfo* info, Napi::Function onRecieve, Ptr<Socket> socket) {
+  Napi::Env env = info->Env();
+  Ptr<Packet> packet;
+  Address from;
+  Address localAddress;
+
+  while ((packet = socket->RecvFrom(from))) {
+    socket->GetSockName(localAddress);
+    function<void(const Napi::CallbackInfo&)> reply = [&](const Napi::CallbackInfo& info) {
+      if (info.Length() > 0) {
+        auto buf = info[0].As<Napi::Buffer<uint8_t>>();
+        Ptr<Packet> pkt = Create<Packet>(reinterpret_cast<const uint8_t*>(buf.Data()), buf.Length());
+        socket->SendTo(pkt, 0, from);
+      }
+    };
+
+    Napi::Object arg = Napi::Object::New(env);
+
+    arg.Set("address", addrToJs(*info, from));
+    arg.Set("packet", packetToJs(*info, packet));
+    arg.Set("reply", Napi::Function::New(env, reply));
+
+    onRecieve.Call({arg});
+  }
+};
+
 struct UdpServerInfo {
+  const Napi::CallbackInfo& info;
   string addr = "";
   int port;
+
   bool echo = false;
-  UdpServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) {
+  bool traceRx = false;
+  Napi::Function onRecieve;
+  UdpServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
     if (init.Get("dst").IsNumber()) {
       port = init.Get("dst").As<Napi::Number>().Uint32Value();
     }
@@ -172,11 +288,24 @@ struct UdpServerInfo {
       addr = ipp.first;
       port = ipp.second;
     }
+    if (init.Has("onRecieve") && init.Get("onRecieve").IsFunction()) {
+      traceRx = true;
+      onRecieve = init.Get("onRecieve").As<Napi::Function>();
+    }
     echo = init.Has("echo");
   };
   void install(ApplicationContainer& apps, MyNode& v) {
     auto resIp = addr.size() > 0 ? Ipv4Address(addr.c_str()) : Ipv4Address::GetAny();
-    if (echo) {
+    if (traceRx) {
+      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onRecieve);
+      Ptr<Socket> ns3UdpSocket = Socket::CreateSocket(v.node.Get(0), UdpSocketFactory::GetTypeId());
+      Ptr<JsSink> app = CreateObject<JsSink>();
+      app->setup(ns3UdpSocket, Address(InetSocketAddress(resIp, port)), handleRead);
+      v.node.Get(0)->AddApplication(app);
+      apps.Add(app);
+      ns3UdpSocket->SetRecvCallback(handleRead);
+    }
+    else if (echo) {
       UdpEchoServerHelper echoServer(port);
       apps = echoServer.Install(v.node.Get(0));
     }
@@ -188,9 +317,13 @@ struct UdpServerInfo {
 };
 
 struct TcpServerInfo {
+  const Napi::CallbackInfo& info;
   string addr = "";
   int port;
-  TcpServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) {
+
+  bool traceRx = false;
+  Napi::Function onRecieve;
+  TcpServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
     if (init.Get("dst").IsNumber()) {
       port = init.Get("dst").As<Napi::Number>().Uint32Value();
     }
@@ -200,12 +333,27 @@ struct TcpServerInfo {
       addr = ipp.first;
       port = ipp.second;
     }
+    if (init.Has("onRecieve") && init.Get("onRecieve").IsFunction()) {
+      traceRx = true;
+      onRecieve = init.Get("onRecieve").As<Napi::Function>();
+    }
   }
   void install(ApplicationContainer& apps, MyNode& v) {
     auto resIp = addr.size() > 0 ? Ipv4Address(addr.c_str()) : Ipv4Address::GetAny();
-    Address sinkLocalAddress (InetSocketAddress (resIp, port));
-    PacketSinkHelper sinkHelper ("ns3::TcpSocketFactory", sinkLocalAddress);
-    apps = sinkHelper.Install (v.node.Get(0));
+    if (traceRx) {
+      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onRecieve);
+      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), TcpSocketFactory::GetTypeId());
+      Ptr<JsSink> app = CreateObject<JsSink>();
+      app->setup(ns3TcpSocket, Address(InetSocketAddress(resIp, port)), handleRead);
+      v.node.Get(0)->AddApplication(app);
+      apps.Add(app);
+      ns3TcpSocket->SetRecvCallback(handleRead);
+    }
+    else {
+      Address sinkLocalAddress (InetSocketAddress (resIp, port));
+      PacketSinkHelper sinkHelper ("ns3::TcpSocketFactory", sinkLocalAddress);
+      apps = sinkHelper.Install (v.node.Get(0));
+    }
   }
 };
 

@@ -9,3 +9,4 @@ vendor
 package-lock.json
 prebuilds
 tmp-*.cc
+tmp-*.h
