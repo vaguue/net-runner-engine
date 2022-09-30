@@ -2,6 +2,7 @@
   "main": "lib/binding.js",
   "dependencies": {
     "detect-libc": "^2.0.1",
+    "dotenv": "^16.0.3",
     "got": "^12.4.1",
     "gunzip-maybe": "^1.4.2",
     "node-addon-api": "^5.0.0",
@@ -26,14 +27,32 @@
     "type": "git",
     "url": "git://github.com/vaguue/net-runner-engine"
   },
-  "os": ["linux"],
-  "cpu": ["x64"],
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
   "binary": {
     "napi_versions": [
       7
     ]
   },
-  "keywords": ["ns3", "ns-3", "ns3-simulator", "network simulator", "network-simulator", "network", "udp", "tcp", "routing", "packet", "ip", "ipv4", "simulator"],
+  "keywords": [
+    "ns3",
+    "ns-3",
+    "ns3-simulator",
+    "network simulator",
+    "network-simulator",
+    "network",
+    "udp",
+    "tcp",
+    "routing",
+    "packet",
+    "ip",
+    "ipv4",
+    "simulator"
+  ],
   "devDependencies": {
     "jest": "^29.0.1"
   }

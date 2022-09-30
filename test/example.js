@@ -148,12 +148,11 @@ async function f5() {
     dataRate: '1Mbps',
     delay: '1ms',
   });
-  net.run(dstDir);
-  console.log('[*] done');
+  net.run(dstDir, { upload: true }).then(url => console.log('[*] done', url));
 }
 
 //f1();
 //f2();
 //f3();
 //f4();
-f3();
+f5();

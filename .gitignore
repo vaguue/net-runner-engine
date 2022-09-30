@@ -10,3 +10,5 @@ package-lock.json
 prebuilds
 tmp-*.cc
 tmp-*.h
+diff.txt
+.env
