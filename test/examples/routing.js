@@ -57,12 +57,17 @@ host1.connect(tmpHosts[0], {
   targetIP: '192.168.1.2',
 });
 
+const isMain = require.main === module;
+
 async function main() {
-  return await net.run(dstDir, { upload: true }).then(url => console.log('[*] uploaded', url));
+  if (isMain) {
+    return await net.run(dstDir, { upload: true }).then(url => console.log('[*] uploaded', url));
+  }
+  return net.run(dstDir);
 }
 
 module.exports = main;
 
-if (require.main === module) {
+if (isMain) {
   main().catch(console.error);
 }

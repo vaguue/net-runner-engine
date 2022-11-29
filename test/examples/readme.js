@@ -47,13 +47,18 @@ host1.connect(host2, {
   delay: '1ms', //optional, default is 5ms
 });
 
+const isMain = require.main === module;
 
 async function main() {
-  return await net.run(dstDir, { upload: true }).then(url => console.log('[*] uploaded', url)); //simulate network and upload results to http://net-runner.xyz
+  if (isMain) {
+    //simulate network and upload results to http://net-runner.xyz
+    return await net.run(dstDir, { upload: true }).then(url => console.log('[*] uploaded', url)); 
+  }
+  return net.run(dstDir);
 }
 
 module.exports = main;
 
-if (require.main === module) {
+if (isMain) {
   main().catch(console.error);
 }
