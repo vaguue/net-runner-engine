@@ -11,7 +11,8 @@
   },
   "scripts": {
     "test": "jest --coverage=true",
-    "install": "node install/ns3.js && node-gyp rebuild"
+    "install": "node install/ns3.js && node-gyp rebuild",
+    "prepare": "husky install"
   },
   "engines": {
     "node": ">=14.15.0"
@@ -54,6 +55,7 @@
     "simulator"
   ],
   "devDependencies": {
+    "husky": "^8.0.2",
     "jest": "^29.0.1"
   }
 }

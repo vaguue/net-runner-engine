@@ -12,3 +12,4 @@ tmp-*.cc
 tmp-*.h
 diff.txt
 .env
+notes.txt
