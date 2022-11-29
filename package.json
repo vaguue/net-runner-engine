@@ -12,6 +12,7 @@
   "scripts": {
     "test": "jest --coverage=true && node test/examples/runAll",
     "install": "node install/ns3.js && node-gyp rebuild",
+    "docker-install": "node install/ns3.js --enable-global-search && node-gyp rebuild",
     "prepare": "husky install"
   },
   "engines": {

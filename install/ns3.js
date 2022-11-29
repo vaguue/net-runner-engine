@@ -12,7 +12,7 @@ const { systemsSupported, sharedObjects, include } = require('./initData');
 const rootDir = path.resolve(__dirname, '..');
 
 const config = {
-  enableGlobalSearch: false,
+  enableGlobalSearch: process.argv.includes('--enable-global-search'),
 };
 
 
