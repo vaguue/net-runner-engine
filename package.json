@@ -3,6 +3,8 @@
   "dependencies": {
     "detect-libc": "^2.0.1",
     "dotenv": "^16.0.3",
+    "filesize": "^10.0.5",
+    "gauge": "^5.0.0",
     "got": "^12.4.1",
     "gunzip-maybe": "^1.4.2",
     "node-addon-api": "^5.0.0",

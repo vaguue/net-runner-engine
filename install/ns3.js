@@ -6,6 +6,8 @@ const detectLibc = require('detect-libc');
 const tar = require('tar-fs');
 const gunzip = require('gunzip-maybe');
 const pipeline = require('util').promisify(require('stream').pipeline);
+const Gauge = require('gauge');
+const { filesize } = require('filesize');
 
 const { systemsSupported, sharedObjects, include } = require('./initData');
 
@@ -71,11 +73,21 @@ async function dwn(fn) {
   const dwnURL = 'https://emu.net-runner.xyz/build/';
   const url = new URL(fn, dwnURL).href;
   try {
+    const gotStream = got.stream(url);
+    const gauge = new Gauge();
+    gauge.setTheme('ASCII');
+    gauge.show(`downloading...`, 0);
+    gotStream.on('downloadProgress', progress => {
+      const { percent, total, transferred } = progress;
+      gauge.pulse(); 
+      gauge.show(`downloading [${filesize(transferred)}/${filesize(total)}]...`, percent);
+    });
     await pipeline(
-      got.stream(url),
+      gotStream,
       gunzip(),
       tar.extract(vendorRoot),
     );
+    gauge.hide();
   } catch (e) {
     throw Error('[!] Download error');
   }
