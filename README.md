@@ -29,17 +29,16 @@ const fs = require('fs');
 const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer, UDPClient, UDPServer } = Simulator;
 
 const dstDir = path.resolve(__dirname, 'files');
-if (!fs.existsSync(dstDir)) {
-  fs.mkdirSync(dstDir);
-}
 
 const net = new Network({ 
   animeLen: 5, // seconds, default is 10
 });
+
 const host1 = new Host({ 
   name: 'Alice', // this name will be used in resulting PCAP files, optional (some numbers will be used if not specified, e.g. 0-1-hub-csma-0.pcap)
 });
 const host2 = new Host({ name: 'Bob' });
+
 host1.setupApplication(new TCPClient({ 
   dst: '192.168.1.3:3000', // accepts dst in format <IP address>:<port>
   onTick: ({ time, sendPacket, tick }) => { // you can implement you custom logic here
@@ -50,6 +49,7 @@ host1.setupApplication(new TCPClient({
     tick('0.1s'); //call onTick after 0.1s
   },
 }));
+
 host2.setupApplication(new TCPServer({ 
   dst: '3000', // accepts only port number via dst field,
   onRecieve: ({ address, packet, reply }) => { // custom recieve callback
@@ -58,9 +58,11 @@ host2.setupApplication(new TCPServer({
     reply(buf);
   },
 }));
+
 // each host should be added to network BEFORE conneting
 net.addNode(host1); 
 net.addNode(host2);
+
 // connecting two hosts
 host1.connect(host2, { 
   sourceIP: '192.168.1.2', //IP of host1's device, required for Host node
@@ -69,29 +71,7 @@ host1.connect(host2, {
   delay: '1ms', //optional, default is 5ms
 });
 
-//Openflow switch example
-const swtch = new Switch({ name: 'MyHomeSwitch' });
-net.addNode(swtch);
-const n = 4;
-const half = Math.floor(n / 2);
-const hosts = [...Array(n).keys()].map((_, i) => new Host({ name: `user${i + 1}` }));
-for (let i = 0; i < n; ++i) {
-  net.addNode(hosts[i]);
-  hosts[i].connect(swtch, {
-    sourceIP: `192.168.0.${i + 1}`, //NOTE: Switch does not have IP address, only host
-  });
-}
-//setting up UDP clients and servers
-for (let i = 0; i < half; ++i) {
-  hosts[i].setupApplication(new UDPClient({ 
-    dst: `192.168.0.${i + half}:8888`, 
-    dataRate: '1Mbps', // without onTick provided, application will just generate traffic, default data rate is 5Mbps
-  }));
-  hosts[n - i - 1].setupApplication(new UDPServer({ 
-    dst: '8888' // here you could provide onRecieve, but this is optional
-  }));
-}
-net.run(dstDir);
+net.run(dstDir, { upload: true }).then(url => console.log('[*] uploaded', url)); //simulate network and upload results to http://net-runner.xyz
 ```
 After running this script you'll see appropriate PCAP files for each interface of each network's node in 'files' directory.
 ## Architecture

@@ -10,7 +10,7 @@
     "uuid": "^8.3.2"
   },
   "scripts": {
-    "test": "jest --coverage=true",
+    "test": "jest --coverage=true && node test/examples/runAll",
     "install": "node install/ns3.js && node-gyp rebuild",
     "prepare": "husky install"
   },
