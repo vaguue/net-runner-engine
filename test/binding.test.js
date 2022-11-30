@@ -1,7 +1,7 @@
 const Simulator = require('..');
 const path = require('path');
 const fs = require('fs');
-const exampleConfig = require('./exampleConfig');
+const exampleConfig = require('./rawConfig');
 
 const dstDir = path.resolve(__dirname, 'files');
 if (!fs.existsSync(dstDir)) {
