@@ -119,3 +119,7 @@ test('Can run with custom delay and data rate', () => {
   host1.connect(host2, { sourceIP: '192.168.1.2', targetIP: '192.168.1.3', dataRate: '10Mbps', delay: '5ms' });
   expect(() => net.run(dstDir)).not.toThrow();
 });
+
+afterAll(done => {
+  done();
+});

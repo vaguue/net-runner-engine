@@ -43,5 +43,8 @@ RUN echo "ns3Path=/root/ns3/lib" >> /root/.bashrc && \
     echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ns3Path' >> /root/.bashrc && \
     echo 'export PATH=$PATH:$ns3Path' >> /root/.bashrc
 
+RUN echo "ns3IncludePath=/root/ns3/include" >> /root/.bashrc && \
+    echo 'export PATH=$PATH:$ns3IncludePath' >> /root/.bashrc
+
 #installing node-gyp
 RUN npm i node-gyp -g
