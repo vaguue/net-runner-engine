@@ -15,12 +15,12 @@ const host2 = new Host({ name: 'UdpServer', x: 400, y: 0 });
 
 host1.setupApplication(new UDPClient({ 
   dst: '192.168.2.1:3000', 
-  onTick: ({ time, sendPacket, tick }) => {
+  onTick: ({ time, sendPacket }) => {
     if (time < 1000) {
       const buf = Buffer.from("hello\0");
       sendPacket(buf);
     }
-    tick('0.1s');
+    return '0.1s';
   },
 }));
 

@@ -133,7 +133,6 @@ struct JsApp : public Application {
   const Napi::CallbackInfo* info = nullptr;
   Napi::Function onTick;
   Napi::Function premadeCallback;
-  Napi::Function tickFromJs;
   Ptr<Socket> socket;
   void setup(const Napi::CallbackInfo* info, Ptr<Socket> socket, Address address, Napi::Function onTick, string interval);
   Address peer;
@@ -165,15 +164,7 @@ void JsApp::setup(const Napi::CallbackInfo* info, Ptr<Socket> socket, Address ad
       this->socket->Send(pkt);
     }
   };
-  function<void(const Napi::CallbackInfo& info)> tickFromJsF = [this](const Napi::CallbackInfo& info) {
-    string delay = "";
-    if (info.Length() > 0) {
-      delay = info[0].As<Napi::String>();
-    }
-    tick(delay);
-  };
   premadeCallback = Napi::Function::New(info->Env(), sendPacket);
-  tickFromJs = Napi::Function::New(info->Env(), tickFromJsF);
 }
 void JsApp::StartApplication (void) {
   running = true;
@@ -206,11 +197,14 @@ void JsApp::callOnTick() {
   Napi::Object arg = Napi::Object::New(env);
   arg.Set("time", Simulator::Now().GetMilliSeconds());
   arg.Set("sendPacket", premadeCallback);
-  if (interval.size() == 0) {
-    arg.Set("tick", tickFromJs);
+  auto res = onTick.Call({arg});
+  if (res.IsString()) {
+    tick(res.As<Napi::String>().Utf8Value());
   }
-  onTick.Call({arg});
-  if (interval.size() > 0) {
+  else if (res.IsPromise()) {
+
+  }
+  else if (interval.size() > 0) {
     tick();
   }
 }

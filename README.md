@@ -46,7 +46,7 @@ host1.setupApplication(new TCPClient({
       const buf = Buffer.from("hello");
       sendPacket(buf); //accepts Buffer only
     }
-    tick('0.1s'); //call onTick after 0.1s
+    return '0.1s'; //call onTick after 0.1s
   },
 }));
 

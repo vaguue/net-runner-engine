@@ -17,12 +17,12 @@ const host1 = new Host({
 const host2 = new Host({ name: 'Bob' });
 host1.setupApplication(new TCPClient({ 
   dst: '192.168.1.3:3000', // accepts dst in format <IP address>:<port>
-  onTick: ({ time, sendPacket, tick }) => { // you can implement you custom logic here
+  onTick: ({ time, sendPacket }) => { // you can implement you custom logic here
     if (time > 1000) {
       const buf = Buffer.from('hello');
       sendPacket(buf); //accepts Buffer only
     }
-    tick('0.1s'); //call onTick after 0.1s
+    return '1s'; //call onTick after 0.1s
   },
 }));
 
