@@ -13,7 +13,16 @@ env:
   GLOBAL_SEARCH: true
 
 jobs:
+  configure:
+    runs-on: ubuntu-latest
+    outputs:
+      uid_gid: ${{ steps.get-user.outputs.uid_gid }}
+    steps:
+      - id: get-user
+        run: echo "::set-output name=uid_gid::$(id -u):$(id -g)"
+
   build:
+    needs: configure
 
     runs-on: ubuntu-latest
     container: netrunnerxyz/ns3-node:latest
@@ -33,4 +42,7 @@ jobs:
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
-    - uses: codecov/codecov-action@v2
+    - name: Publish to coveralls.io
+      uses: coverallsapp/github-action@v1.1.2
+      with:
+        github-token: ${{ github.token }}
