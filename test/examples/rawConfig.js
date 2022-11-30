@@ -1,5 +1,5 @@
 const Simulator = require('../..');
-const config = require('../exampleConfig');
+const config = require('../rawConfig');
 const path = require('path');
 const fs = require('fs');
 
