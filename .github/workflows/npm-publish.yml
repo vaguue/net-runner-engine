@@ -21,7 +21,9 @@ jobs:
 
   build:
     needs: configure
-    container: netrunnerxyz/ns3-node:latest
+    container:
+      image: netrunnerxyz/ns3-node:latest
+      options: --user ${{ needs.configure.outputs.uid_gid }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -33,7 +35,9 @@ jobs:
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
-    container: netrunnerxyz/ns3-node:latest
+    container:
+      image: netrunnerxyz/ns3-node:latest
+      options: --user ${{ needs.configure.outputs.uid_gid }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
