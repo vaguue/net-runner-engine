@@ -8,27 +8,29 @@ using namespace std;
 
 extern struct DebugStream debug;
 
-void CustomAssign (Ptr<NetDevice> device, string addr) {
+void CustomAssign(Ptr<NetDevice> device, const pair<string, string>& conInfo) {
+  string addr = conInfo.first;
+  string mask = conInfo.second;
   debug << "[DEBUG] assigning " << addr << endl;
-  Ptr<Node> node = device->GetNode ();
-  Ptr<Ipv4> ipv4 = node->GetObject<Ipv4> ();
+  Ptr<Node> node = device->GetNode();
+  Ptr<Ipv4> ipv4 = node->GetObject<Ipv4>();
 
-  int32_t interface = ipv4->GetInterfaceForDevice (device);
+  int32_t interface = ipv4->GetInterfaceForDevice(device);
   if (interface == -1)
   {
     interface = ipv4->AddInterface(device);
   }
 
-  Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress(Ipv4Address(addr.c_str()), Ipv4Mask(uint32_t(0)));
-  ipv4->AddAddress (interface, ipv4Addr);
-  ipv4->SetMetric (interface, 1);
-  ipv4->SetUp (interface);
+  Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress(Ipv4Address(addr.c_str()), Ipv4Mask(mask.c_str()));
+  ipv4->AddAddress(interface, ipv4Addr);
+  ipv4->SetMetric(interface, 1);
+  ipv4->SetUp(interface);
 
   // Install the default traffic control configuration if the traffic
   // control layer has been aggregated, if this is not 
   // a loopback interface, and there is no queue disc installed already
   Ptr<TrafficControlLayer> tc = node->GetObject<TrafficControlLayer> ();
-  if (tc && DynamicCast<LoopbackNetDevice> (device) == 0 && tc->GetRootQueueDiscOnDevice (device) == 0)
+  if (tc && DynamicCast<LoopbackNetDevice>(device) == 0 && tc->GetRootQueueDiscOnDevice(device) == 0)
   {
     Ptr<NetDeviceQueueInterface> ndqi = device->GetObject<NetDeviceQueueInterface> ();
     // It is useless to install a queue disc if the device has no
@@ -37,10 +39,10 @@ void CustomAssign (Ptr<NetDevice> device, string addr) {
     // immediately dequeued, hence there will never be backlog
     if (ndqi)
     {
-      std::size_t nTxQueues = ndqi->GetNTxQueues ();
+      std::size_t nTxQueues = ndqi->GetNTxQueues();
       //TrafficControlHelper tcHelper = TrafficControlHelper::Default (nTxQueues);
-      TrafficControlHelper tcHelper = TrafficControlHelper::Default ();
-      tcHelper.Install (device);
+      TrafficControlHelper tcHelper = TrafficControlHelper::Default();
+      tcHelper.Install(device);
     }
   }
 }
@@ -76,7 +78,7 @@ inline vector<pair<int, int>> getChildren(NodeCont& myNodes, const GraphCont& gr
           q.push(v);
         }
         else {
-          debug << "[DEBUG] BFS: adding " << v << ' ' << i << ' ' << addrInfo[v][i] << endl;
+          debug << "[DEBUG] BFS: adding " << v << ' ' << i << ' ' << addrInfo[v][i].first << endl;
           res.push_back(make_pair(v, i));
         }
       }
@@ -125,7 +127,7 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
         child.devs.Add(link.Get(j));
         addDevName(child, e, "hub-csma");
         if (child.type == "pc") {
-          debug << "[DEBUG] assigning from hub " << addrInfo[v][chPr.second] << endl;
+          debug << "[DEBUG] assigning from hub " << addrInfo[v][chPr.second].first << endl;
           CustomAssign(child.devs.Get(child.devs.GetN() - 1), addrInfo[v][chPr.second]);
         }
         was[chPr.second][v] = true;
@@ -179,38 +181,6 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
         swtch.Install (e.node.Get(0), e.devs, controller);
       }
       //TODO maybe csma.EnablePcapAll ("openflow-switch", false);???
-    }
-    else if (e.type == "wifi") {
-      NodeContainer wifiStaNodes;
-      for (auto v : graph[i]) {
-        auto& child = myNodes[v];
-        //if (was[i][v]) continue;
-        wifiStaNodes.Add(child.node);
-      }
-      YansWifiChannelHelper channel = YansWifiChannelHelper::Default();
-      YansWifiPhyHelper phy = YansWifiPhyHelper::Default();
-      phy.SetChannel(channel.Create());
-      WifiHelper wifi;
-      //wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
-      WifiMacHelper mac;
-      Ssid ssid = Ssid(e.ssid);
-      //TODO unknown config
-      mac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssid), "ActiveProbing", BooleanValue (false)); 
-      NetDeviceContainer staDevices = wifi.Install (phy, mac, wifiStaNodes);
-      mac.SetType ("ns3::ApWifiMac", "Ssid", SsidValue (ssid));
-      NetDeviceContainer apDevices = wifi.Install (phy, mac, e.node);
-      e.devs.Add(apDevices);
-      e.devNames.push_back("wifi-ap");
-      int j = 0;
-      for (auto v : graph[i]) {
-        auto& child = myNodes[v];
-        //if (was[i][v]) continue;
-        child.devs.Add(staDevices.Get(j));
-        addDevName(child, e, "wifi");
-        CustomAssign(child.devs.Get(child.devs.GetN() - 1), addrInfo[v][i] != e.apIP && addrInfo[v][i].size() > 0 ? addrInfo[v][i] : addrInfo[i][v]);
-        j++;
-      }
-      CustomAssign(e.devs.Get(e.devs.GetN() - 1), e.apIP);
     }
   }
   for (int i = 0; i < graph.size(); ++i) {

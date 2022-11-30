@@ -4,6 +4,8 @@ using namespace Napi;
 using namespace ns3;
 using namespace std;
 
+extern struct DebugStream debug;
+
 Wrapper::Wrapper(const Napi::CallbackInfo& info) : ObjectWrap(info)/*, echoServer(9)*/ {
   if (info.Length() > 1) {
     auto options = info[1].As<Napi::Object>();
@@ -12,11 +14,13 @@ Wrapper::Wrapper(const Napi::CallbackInfo& info) : ObjectWrap(info)/*, echoServe
     }
   }
   Time::SetResolution (Time::NS);
-  NS_LOG_COMPONENT_DEFINE ("NS3 Wrapper");
-  LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
-  LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
-  LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
-  LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
+  if (debug.enabled) {
+    NS_LOG_COMPONENT_DEFINE ("NS3 Wrapper");
+    LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
+    LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
+    LogComponentEnable ("UdpEchoClientApplication", LOG_LEVEL_INFO);
+    LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
+  }
 }
 
 Napi::Value Wrapper::run(const Napi::CallbackInfo& info) {

@@ -79,7 +79,7 @@ struct MyNode {
 
 using NodeCont = std::map<int, MyNode>;
 using GraphCont = std::vector<std::vector<int>>;
-using AddrCont = std::vector<std::vector<std::string>>;
+using AddrCont = std::vector<std::vector<std::pair<std::string, std::string>>>;
 
 struct ConnectionData {
   //int CustomDataRate = 100000;

@@ -13,4 +13,5 @@ diff.txt
 .env
 notes.txt
 test/examples/files
+test/examples/current.js
 bin

@@ -78,21 +78,37 @@ GraphCont getGraph(const Napi::Object& config) {
 AddrCont getAddrInfo(const Napi::Object& config) {
   auto edgesArray = config.Get("edges").As<Napi::Array>();
   auto nodesArray = config.Get("nodes").As<Napi::Array>();
-  AddrCont addr(nodesArray.Length(), vector<string>(nodesArray.Length()));
+  AddrCont addrs(nodesArray.Length(), vector<pair<string, string>>(nodesArray.Length()));
   for (int i = 0; i < edgesArray.Length(); ++i) {
     auto obj = edgesArray.Get(i).As<Napi::Object>();
     auto source = obj.Get("source").As<Napi::Number>().Uint32Value();
     auto target = obj.Get("target").As<Napi::Number>().Uint32Value();
     if (obj.Has("sourceIP")) {
-      addr[source][target] = obj.Get("sourceIP").As<Napi::String>().Utf8Value();
+      string addr = obj.Get("sourceIP").As<Napi::String>().Utf8Value();
+      string mask = "255.255.255.0";
+      if (obj.Has("sourceMask")) {
+        mask = obj.Get("sourceMask").As<Napi::String>().Utf8Value();
+      }
+      else if (obj.Has("mask")) {
+        mask = obj.Get("mask").As<Napi::String>().Utf8Value();
+      }
+      addrs[source][target] = make_pair(addr, mask);
     }
     if (obj.Has("targetIP")) {
-      addr[target][source] = obj.Get("targetIP").As<Napi::String>().Utf8Value();
+      string addr = obj.Get("targetIP").As<Napi::String>().Utf8Value();
+      string mask = "255.255.255.0";
+      if (obj.Has("targetMask")) {
+        mask = obj.Get("targetMask").As<Napi::String>().Utf8Value();
+      }
+      else if (obj.Has("mask")) {
+        mask = obj.Get("mask").As<Napi::String>().Utf8Value();
+      }
+      addrs[target][source] = make_pair(addr, mask);
     }
-    debug << "[DEBUG] " << source << ' ' << target << ' ' << addr[source][target] << endl;
-    debug << "[DEBUG] " << target << ' ' << source << ' ' << addr[target][source] << endl;
+    debug << "[DEBUG] " << source << ' ' << target << ' ' << addrs[source][target].first << ' ' << addrs[source][target].second << endl;
+    debug << "[DEBUG] " << target << ' ' << source << ' ' << addrs[target][source].first << ' ' << addrs[source][target].second << endl;
   }
-  return addr;
+  return addrs;
 }
 
 ConnectionDataCont getConnectionData(const Napi::Object& config, NodeCont& myNodes) {
