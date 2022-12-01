@@ -27,8 +27,8 @@ host1.setupApplication(new UDPClient({
 
 host2.setupApplication(new UDPServer({ 
   dst: 3000,
-  onRecieve: ({ address, packet, reply }) => {
-    console.log('[*] recieve', address, packet);
+  onReceive: ({ address, packet, reply }) => {
+    console.log('[*] receive', address, packet);
     const buf = Buffer.from("world?");
     reply(buf);
   },

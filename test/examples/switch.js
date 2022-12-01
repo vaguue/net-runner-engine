@@ -29,7 +29,7 @@ for (let i = 0; i < half; ++i) {
     dataRate: '1Mbps', // without onTick provided, application will just generate traffic, default data rate is 5Mbps
   }));
   hosts[n - i - 1].setupApplication(new UDPServer({ 
-    dst: '8888' // here you could provide onRecieve, but this is optional
+    dst: '8888' // here you could provide onReceive, but this is optional
   }));
 }
 

@@ -238,7 +238,7 @@ struct SinkInfo {
   }
 };
 
-void sinkRxTrace(const Napi::CallbackInfo* info, Napi::Function onRecieve, Ptr<Socket> socket) {
+void sinkRxTrace(const Napi::CallbackInfo* info, Napi::Function onReceive, Ptr<Socket> socket) {
   Napi::Env env = info->Env();
   Ptr<Packet> packet;
   Address from;
@@ -260,7 +260,7 @@ void sinkRxTrace(const Napi::CallbackInfo* info, Napi::Function onRecieve, Ptr<S
     arg.Set("packet", packetToJs(*info, packet));
     arg.Set("reply", Napi::Function::New(env, reply));
 
-    onRecieve.Call({arg});
+    onReceive.Call({arg});
   }
 };
 
@@ -271,7 +271,7 @@ struct UdpServerInfo {
 
   bool echo = false;
   bool traceRx = false;
-  Napi::Function onRecieve;
+  Napi::Function onReceive;
   UdpServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
     if (init.Get("dst").IsNumber()) {
       port = init.Get("dst").As<Napi::Number>().Uint32Value();
@@ -282,16 +282,16 @@ struct UdpServerInfo {
       addr = ipp.first;
       port = ipp.second;
     }
-    if (init.Has("onRecieve") && init.Get("onRecieve").IsFunction()) {
+    if (init.Has("onReceive") && init.Get("onReceive").IsFunction()) {
       traceRx = true;
-      onRecieve = init.Get("onRecieve").As<Napi::Function>();
+      onReceive = init.Get("onReceive").As<Napi::Function>();
     }
     echo = init.Has("echo");
   };
   void install(ApplicationContainer& apps, MyNode& v) {
     auto resIp = addr.size() > 0 ? Ipv4Address(addr.c_str()) : Ipv4Address::GetAny();
     if (traceRx) {
-      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onRecieve);
+      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onReceive);
       Ptr<Socket> ns3UdpSocket = Socket::CreateSocket(v.node.Get(0), UdpSocketFactory::GetTypeId());
       Ptr<JsSink> app = CreateObject<JsSink>();
       app->setup(ns3UdpSocket, Address(InetSocketAddress(resIp, port)), handleRead);
@@ -316,7 +316,7 @@ struct TcpServerInfo {
   int port;
 
   bool traceRx = false;
-  Napi::Function onRecieve;
+  Napi::Function onReceive;
   TcpServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
     if (init.Get("dst").IsNumber()) {
       port = init.Get("dst").As<Napi::Number>().Uint32Value();
@@ -327,15 +327,15 @@ struct TcpServerInfo {
       addr = ipp.first;
       port = ipp.second;
     }
-    if (init.Has("onRecieve") && init.Get("onRecieve").IsFunction()) {
+    if (init.Has("onReceive") && init.Get("onReceive").IsFunction()) {
       traceRx = true;
-      onRecieve = init.Get("onRecieve").As<Napi::Function>();
+      onReceive = init.Get("onReceive").As<Napi::Function>();
     }
   }
   void install(ApplicationContainer& apps, MyNode& v) {
     auto resIp = addr.size() > 0 ? Ipv4Address(addr.c_str()) : Ipv4Address::GetAny();
     if (traceRx) {
-      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onRecieve);
+      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onReceive);
       Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), TcpSocketFactory::GetTypeId());
       Ptr<JsSink> app = CreateObject<JsSink>();
       app->setup(ns3TcpSocket, Address(InetSocketAddress(resIp, port)), handleRead);
@@ -534,7 +534,7 @@ struct RawSocketClientInfo {
       apps.Add(app);
     } 
     else {
-      throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick/onRecieve argument");
+      throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick/onReceive argument");
     }
   }
 };
@@ -546,7 +546,7 @@ struct RawSocketServerInfo {
 
   bool packetSocket = false;
   bool traceRx = false;
-  Napi::Function onRecieve;
+  Napi::Function onReceive;
   RawSocketServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
     if (init.Get("dst").IsNumber()) {
       port = init.Get("dst").As<Napi::Number>().Uint32Value();
@@ -557,9 +557,9 @@ struct RawSocketServerInfo {
       addr = ipp.first;
       port = ipp.second;
     }
-    if (init.Has("onRecieve") && init.Get("onRecieve").IsFunction()) {
+    if (init.Has("onReceive") && init.Get("onReceive").IsFunction()) {
       traceRx = true;
-      onRecieve = init.Get("onRecieve").As<Napi::Function>();
+      onReceive = init.Get("onReceive").As<Napi::Function>();
     }
     if (init.Has("packetSocket")) {
       packetSocket = init.Get("packetSocket").As<Napi::Boolean>();
@@ -568,7 +568,7 @@ struct RawSocketServerInfo {
   void install(ApplicationContainer& apps, MyNode& v) {
     auto resIp = addr.size() > 0 ? Ipv4Address(addr.c_str()) : Ipv4Address::GetAny();
     if (traceRx) {
-      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onRecieve);
+      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onReceive);
       Ptr<Socket> ns3RawSocket = Socket::CreateSocket(v.node.Get(0), 
           packetSocket ? 
           PacketSocketFactory::GetTypeId() :
@@ -585,7 +585,7 @@ struct RawSocketServerInfo {
       ns3RawSocket->SetRecvCallback(handleRead);
     }
     else {
-      throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick/onRecieve argument");
+      throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick/onReceive argument");
     }
   }
 };

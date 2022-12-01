@@ -28,8 +28,8 @@ host1.setupApplication(new TCPClient({
 
 host2.setupApplication(new TCPServer({ 
   dst: '3000', // accepts only port number via dst field,
-  onRecieve: ({ address, packet, reply }) => { // custom recieve callback
-    console.log('[*] recieve', address, packet);
+  onReceive: ({ address, packet, reply }) => { // custom receive callback
+    console.log('[*] receive', address, packet);
     const buf = Buffer.from("world?");
     reply(buf);
   },
