@@ -161,7 +161,7 @@ void JsApp::setup(const Napi::CallbackInfo* info, Ptr<Socket> socket, Address ad
     if (info.Length() > 0) {
       auto buf = info[0].As<Napi::Buffer<uint8_t>>();
       Ptr<Packet> pkt = Create<Packet>(reinterpret_cast<const uint8_t*>(buf.Data()), buf.Length());
-      cout << this->socket->Send(pkt) << ' ' << this->socket->GetErrno() << endl;
+      this->socket->Send(pkt);
     }
   };
   premadeCallback = Napi::Function::New(info->Env(), sendPacket);
