@@ -201,9 +201,9 @@ void JsApp::callOnTick() {
   if (res.IsString()) {
     tick(res.As<Napi::String>().Utf8Value());
   }
-  else if (res.IsPromise()) {
+  /*else if (res.IsPromise()) {
 
-  }
+  }*/
   else if (interval.size() > 0) {
     tick();
   }
@@ -484,6 +484,86 @@ struct TcpClientInfo {
   }
 };
 
+struct RawSocketClientInfo {
+  const Napi::CallbackInfo& info;
+  string addr = "";
+  int port;
+
+  int maxBytes = 0;
+  int packetSize = 256;
+  string dataRate = "5Mbps";
+  bool bulk = false;
+
+  Napi::Function onTick;
+  string tickInterval = "";
+  bool useTicks = false;
+
+  RawSocketClientInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
+    string dst = init.Get("dst").As<Napi::String>();
+    auto ipp = ipPort(dst);
+    addr = ipp.first;
+    port = ipp.second;
+    if (init.Has("onTick") && init.Get("onTick").IsFunction()) {
+      useTicks = true;
+      onTick = init.Get("onTick").As<Napi::Function>();
+    }
+    if (init.Has("tickInterval") && init.Get("tickInterval").IsString()) {
+      tickInterval = init.Get("tickInterval").As<Napi::String>();
+    }
+  }
+  void install(ApplicationContainer& apps, MyNode& v) {
+    if (useTicks) {
+      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), Ipv4RawSocketFactory::GetTypeId());
+      Ptr<JsApp> app = CreateObject<JsApp>();
+      app->setup(&info, ns3TcpSocket, Address(InetSocketAddress(Ipv4Address(addr.c_str()), port)), onTick, tickInterval);
+      v.node.Get(0)->AddApplication(app);
+      apps.Add(app);
+    } 
+    else {
+      throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick argument");
+    }
+  }
+};
+
+struct RawSocketServerInfo {
+  const Napi::CallbackInfo& info;
+  string addr = "";
+  int port;
+
+  bool traceRx = false;
+  Napi::Function onRecieve;
+  RawSocketServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
+    if (init.Get("dst").IsNumber()) {
+      port = init.Get("dst").As<Napi::Number>().Uint32Value();
+    }
+    else {
+      string dst = init.Get("dst").As<Napi::String>();
+      auto ipp = ipPort(dst);
+      addr = ipp.first;
+      port = ipp.second;
+    }
+    if (init.Has("onRecieve") && init.Get("onRecieve").IsFunction()) {
+      traceRx = true;
+      onRecieve = init.Get("onRecieve").As<Napi::Function>();
+    }
+  }
+  void install(ApplicationContainer& apps, MyNode& v) {
+    auto resIp = addr.size() > 0 ? Ipv4Address(addr.c_str()) : Ipv4Address::GetAny();
+    if (traceRx) {
+      auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onRecieve);
+      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), Ipv4RawSocketFactory::GetTypeId());
+      Ptr<JsSink> app = CreateObject<JsSink>();
+      app->setup(ns3TcpSocket, Address(InetSocketAddress(resIp, port)), handleRead);
+      v.node.Get(0)->AddApplication(app);
+      apps.Add(app);
+      ns3TcpSocket->SetRecvCallback(handleRead);
+    }
+    else {
+      throw Napi::Error::New(info.Env(), "Raw socket application has to have onRecieve argument");
+    }
+  }
+};
+
 void setupApplications(NodeCont& myNodes, const options& opts, const Napi::CallbackInfo& info) {
   for (auto& keyVal : myNodes) {
     auto v = keyVal.second;
@@ -511,6 +591,14 @@ void setupApplications(NodeCont& myNodes, const options& opts, const Napi::Callb
       }
       else if (e.type == "tcp-client") {
         TcpClientInfo appInfo{e.init, info};
+        appInfo.install(apps, v);
+      }
+      else if (e.type == "raw-socket-client") {
+        RawSocketClientInfo appInfo{e.init, info};
+        appInfo.install(apps, v);
+      }
+      else if (e.type == "raw-socket-server") {
+        RawSocketServerInfo appInfo{e.init, info};
         appInfo.install(apps, v);
       }
       apps.Start (Time (e.start));
