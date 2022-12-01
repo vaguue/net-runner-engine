@@ -161,7 +161,7 @@ void JsApp::setup(const Napi::CallbackInfo* info, Ptr<Socket> socket, Address ad
     if (info.Length() > 0) {
       auto buf = info[0].As<Napi::Buffer<uint8_t>>();
       Ptr<Packet> pkt = Create<Packet>(reinterpret_cast<const uint8_t*>(buf.Data()), buf.Length());
-      this->socket->Send(pkt);
+      cout << this->socket->Send(pkt) << ' ' << this->socket->GetErrno() << endl;
     }
   };
   premadeCallback = Napi::Function::New(info->Env(), sendPacket);
@@ -513,12 +513,23 @@ struct RawSocketClientInfo {
   }
   void install(ApplicationContainer& apps, MyNode& v) {
     if (useTicks) {
-      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), 
+      Ptr<Socket> ns3RawSocket = Socket::CreateSocket(v.node.Get(0), 
           packetSocket ? 
           PacketSocketFactory::GetTypeId() :
           Ipv4RawSocketFactory::GetTypeId());
       Ptr<JsApp> app = CreateObject<JsApp>();
-      app->setup(&info, ns3TcpSocket, Address(InetSocketAddress(Ipv4Address(addr.c_str()), port)), onTick, tickInterval);
+      if (packetSocket) {
+        throw Napi::Error::New(info.Env(), "Not implemented");
+        //TODO example of working with PacketSocket
+        PacketSocketAddress socket;
+        socket.SetSingleDevice(1);
+        socket.SetPhysicalAddress(Address(Mac48Address("02-06-00:00:00:00:00:02")));
+        socket.SetProtocol(1);
+        app->setup(&info, ns3RawSocket, Address(socket), onTick, tickInterval);
+      }
+      else {
+        app->setup(&info, ns3RawSocket, Address(InetSocketAddress(Ipv4Address(addr.c_str()), port)), onTick, tickInterval);
+      }
       v.node.Get(0)->AddApplication(app);
       apps.Add(app);
     } 
@@ -558,15 +569,20 @@ struct RawSocketServerInfo {
     auto resIp = addr.size() > 0 ? Ipv4Address(addr.c_str()) : Ipv4Address::GetAny();
     if (traceRx) {
       auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onRecieve);
-      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), 
+      Ptr<Socket> ns3RawSocket = Socket::CreateSocket(v.node.Get(0), 
           packetSocket ? 
           PacketSocketFactory::GetTypeId() :
           Ipv4RawSocketFactory::GetTypeId());
       Ptr<JsSink> app = CreateObject<JsSink>();
-      app->setup(ns3TcpSocket, Address(InetSocketAddress(resIp, port)), handleRead);
+      if (packetSocket) {
+        throw Napi::Error::New(info.Env(), "Not implemented");
+      }
+      else {
+        app->setup(ns3RawSocket, Address(InetSocketAddress(resIp, port)), handleRead);
+      }
       v.node.Get(0)->AddApplication(app);
       apps.Add(app);
-      ns3TcpSocket->SetRecvCallback(handleRead);
+      ns3RawSocket->SetRecvCallback(handleRead);
     }
     else {
       throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick/onRecieve argument");
