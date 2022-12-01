@@ -54,7 +54,7 @@ tmpHosts.forEach((e, i) => {
 });
 
 host1.connect(tmpHosts[0], {
-  sourceIP: '192.168.2.0',
+  sourceIP: '192.168.1.1',
   targetIP: '192.168.1.2',
 });
 
