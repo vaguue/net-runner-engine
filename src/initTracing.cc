@@ -10,13 +10,13 @@ using namespace std;
 extern struct DebugStream debug;
 
 void LogPacket(Ptr<PcapFileWrapper> file, Ptr<const Packet> p) {
-  file->Write(Simulator::Now (), p);
+  file->Write(Simulator::Now(), p);
 }
 
 Napi::Value Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
   DEBUG(myNodes.size());
   PcapHelper pcapHelper;
-  Ptr<PcapFileWrapper> file = pcapHelper.CreateFile(fns::path{this->pcapPath} / fns::path{"main.pcap"}, std::ios::out, PcapHelper::DLT_PPP);
+  Ptr<PcapFileWrapper> file = pcapHelper.CreateFile(fns::path{this->pcapPath} / fns::path{"main.pcap"}, std::ios::out, PcapHelper::DLT_RAW);
   for (auto& keyVal : myNodes) {
     auto& e = keyVal.second;
     debug << "[DEBUG] working with node " << e.id << ' ' << e.type << ' ' << e.devs.GetN() << endl;
@@ -48,18 +48,19 @@ Napi::Value Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
       ++it;
     }
   }
+  MobilityHelper mobility;
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  for (auto& keyVal : myNodes) {
+    auto& e = keyVal.second;
+    mobility.Install(e.node);
+  }
   string animFile = fns::path{this->pcapPath} / fns::path{"anime.xml"};
   animePointer = new AnimationInterface(animFile);
   animePointer->SetMobilityPollInterval (Seconds (1));
-  MobilityHelper mobility;
-  int i = 0;
   for (auto& keyVal : myNodes) {
     auto& e = keyVal.second;
-    debug << "[DEBUG] setting for node " << e.node.Get(0) << ' ' << i << endl;
-    mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-    mobility.Install(e.node);
+    debug << "[DEBUG] setting for node " << e.node.Get(0)->GetId() << endl;
     animePointer->SetConstantPosition (e.node.Get(0), e.x, e.y);
-    i += 1;
   }
   animePointer->EnablePacketMetadata (true);
   //Ipv4RoutingHelper routingTrace;

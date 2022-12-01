@@ -9,13 +9,21 @@ using namespace std;
 DebugStream debug {true};
 
 /* setting up NS-3 */
-void setupNodes(NodeCont& myNodes) {
+void setupNodes(NodeCont& myNodes, const string& runId = "") {
   for (auto& keyVal : myNodes) {//create each node
     auto& e = keyVal.second;
     NodeContainer tmp;
     tmp.Create(1);
     //e.node = tmp.Get(0);
     e.node = tmp;
+    if (e.name.size() > 0) {
+      if (runId.size() > 0) {
+        Names::Add(("/Names/"+runId+"@"+e.name).c_str(), e.node.Get(0));
+      }
+      else {
+        Names::Add(("/Names/"+e.name).c_str(), e.node.Get(0));
+      }
+    }
   }
 }
 
@@ -25,6 +33,8 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
     Napi::TypeError::New(env, "Specify config").ThrowAsJavaScriptException();
   }
   auto config = info[0].As<Napi::Object>();
+
+  string runId = config.Has("runId") ? config.Get("runId").As<Napi::String>() : string("");
 
   auto options = getOpitons(config);
   debug.enabled = options.verbose;
@@ -37,7 +47,7 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
   DEBUG(connectionData);
   DEBUG(graph);
 
-  setupNodes(myNodes);
+  setupNodes(myNodes, runId);
   debug << "[DEBUG] setted up nodes" << endl;
   setupConnections(myNodes, graph, addrInfo, connectionData);
   debug << "[DEBUG] setted up connections" << endl;

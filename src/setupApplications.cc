@@ -402,11 +402,12 @@ struct UdpClientInfo {
       v.node.Get(0)->AddApplication(app);
       apps.Add(app);
     }
-    else if (bulk) {
+    //TODO bulk for UDP is not supported by NS3
+    /*else if (bulk) {
       BulkSendHelper source("ns3::UdpSocketFactory", InetSocketAddress (Ipv4Address (addr.c_str()), port));
       source.SetAttribute("MaxBytes", UintegerValue(maxBytes));
       apps = source.Install(v.node.Get(0));
-    }
+    }*/ 
     else {
       OnOffHelper onoff("ns3::UdpSocketFactory", Address(InetSocketAddress(Ipv4Address(addr.c_str()), port)));
       onoff.SetAttribute("PacketSize", UintegerValue(packetSize));
