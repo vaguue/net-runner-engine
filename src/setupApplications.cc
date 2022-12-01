@@ -201,9 +201,9 @@ void JsApp::callOnTick() {
   if (res.IsString()) {
     tick(res.As<Napi::String>().Utf8Value());
   }
-  /*else if (res.IsPromise()) {
-
-  }*/
+  else if (res.IsPromise()) {
+    throw Napi::Error::New(env, "Async functions are not supported");
+  }
   else if (interval.size() > 0) {
     tick();
   }
