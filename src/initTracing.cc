@@ -16,7 +16,7 @@ void LogPacket(Ptr<PcapFileWrapper> file, Ptr<const Packet> p) {
 Napi::Value Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
   DEBUG(myNodes.size());
   PcapHelper pcapHelper;
-  Ptr<PcapFileWrapper> file = pcapHelper.CreateFile(fns::path{this->pcapPath} / fns::path{"main.pcap"}, std::ios::out, PcapHelper::DLT_RAW);
+  //Ptr<PcapFileWrapper> file = pcapHelper.CreateFile(fns::path{this->pcapPath} / fns::path{"main.pcap"}, std::ios::out, PcapHelper::DLT_RAW);
   for (auto& keyVal : myNodes) {
     auto& e = keyVal.second;
     debug << "[DEBUG] working with node " << e.id << ' ' << e.type << ' ' << e.devs.GetN() << endl;

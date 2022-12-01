@@ -7,7 +7,8 @@ const { Network, Hub, Switch, Host, TCPClient, TCPServer, UDPClient, UDPServer }
 const dstDir = path.resolve(__dirname, 'files/routing');
 
 const net = new Network({ 
-  animeLen: 3,
+  animeLen: 1,
+  populateIP: true,
 });
 
 const host1 = new Host({ name: 'UdpClient', x: 0, y: 0 });
@@ -20,7 +21,7 @@ host1.setupApplication(new UDPClient({
       const buf = Buffer.from("hello\0");
       sendPacket(buf);
     }
-    return '0.1s';
+    return '0.01s';
   },
 }));
 
@@ -53,7 +54,7 @@ tmpHosts.forEach((e, i) => {
 });
 
 host1.connect(tmpHosts[0], {
-  sourceIP: '192.168.1.1',
+  sourceIP: '192.168.2.0',
   targetIP: '192.168.1.2',
 });
 

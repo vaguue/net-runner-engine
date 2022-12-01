@@ -16,6 +16,7 @@
 #include "ns3/trace-helper.h"
 #include "ns3/wifi-module.h"
 #include "ns3/ipv4-routing-helper.h"
+#include "ns3/bridge-helper.h"
 
 namespace fns = std::filesystem;
 

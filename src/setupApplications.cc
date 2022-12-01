@@ -489,10 +489,7 @@ struct RawSocketClientInfo {
   string addr = "";
   int port;
 
-  int maxBytes = 0;
-  int packetSize = 256;
-  string dataRate = "5Mbps";
-  bool bulk = false;
+  bool packetSocket = false;
 
   Napi::Function onTick;
   string tickInterval = "";
@@ -510,17 +507,23 @@ struct RawSocketClientInfo {
     if (init.Has("tickInterval") && init.Get("tickInterval").IsString()) {
       tickInterval = init.Get("tickInterval").As<Napi::String>();
     }
+    if (init.Has("packetSocket")) {
+      packetSocket = init.Get("packetSocket").As<Napi::Boolean>();
+    }
   }
   void install(ApplicationContainer& apps, MyNode& v) {
     if (useTicks) {
-      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), Ipv4RawSocketFactory::GetTypeId());
+      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), 
+          packetSocket ? 
+          PacketSocketFactory::GetTypeId() :
+          Ipv4RawSocketFactory::GetTypeId());
       Ptr<JsApp> app = CreateObject<JsApp>();
       app->setup(&info, ns3TcpSocket, Address(InetSocketAddress(Ipv4Address(addr.c_str()), port)), onTick, tickInterval);
       v.node.Get(0)->AddApplication(app);
       apps.Add(app);
     } 
     else {
-      throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick argument");
+      throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick/onRecieve argument");
     }
   }
 };
@@ -530,6 +533,7 @@ struct RawSocketServerInfo {
   string addr = "";
   int port;
 
+  bool packetSocket = false;
   bool traceRx = false;
   Napi::Function onRecieve;
   RawSocketServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
@@ -546,12 +550,18 @@ struct RawSocketServerInfo {
       traceRx = true;
       onRecieve = init.Get("onRecieve").As<Napi::Function>();
     }
+    if (init.Has("packetSocket")) {
+      packetSocket = init.Get("packetSocket").As<Napi::Boolean>();
+    }
   }
   void install(ApplicationContainer& apps, MyNode& v) {
     auto resIp = addr.size() > 0 ? Ipv4Address(addr.c_str()) : Ipv4Address::GetAny();
     if (traceRx) {
       auto handleRead = MakeBoundCallback(&sinkRxTrace, &info, onRecieve);
-      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), Ipv4RawSocketFactory::GetTypeId());
+      Ptr<Socket> ns3TcpSocket = Socket::CreateSocket(v.node.Get(0), 
+          packetSocket ? 
+          PacketSocketFactory::GetTypeId() :
+          Ipv4RawSocketFactory::GetTypeId());
       Ptr<JsSink> app = CreateObject<JsSink>();
       app->setup(ns3TcpSocket, Address(InetSocketAddress(resIp, port)), handleRead);
       v.node.Get(0)->AddApplication(app);
@@ -559,7 +569,7 @@ struct RawSocketServerInfo {
       ns3TcpSocket->SetRecvCallback(handleRead);
     }
     else {
-      throw Napi::Error::New(info.Env(), "Raw socket application has to have onRecieve argument");
+      throw Napi::Error::New(info.Env(), "Raw socket application has to have onTick/onRecieve argument");
     }
   }
 };

@@ -57,6 +57,7 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
   debug << "[DEBUG] setted up" << endl;
   
   if (options.populateIP) {
+    debug << "[DEBUG] popuplating routing tables" << endl;
     Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   }
   initTracing(env, myNodes);
