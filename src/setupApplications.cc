@@ -105,7 +105,6 @@ void JsSink::StartApplication (void) {
   socket->Listen();
   socket->SetAcceptCallback(MakeNullCallback<bool, Ptr<Socket>, const Address &>(), MakeCallback(&JsSink::HandleAccept, this));
   socket->SetRecvPktInfo(true);
-  socket->SetAcceptCallback(MakeNullCallback<bool, Ptr<Socket>, const Address &> (), MakeCallback (&JsSink::HandleAccept, this));
   socket->SetCloseCallbacks(MakeCallback (&JsSink::HandlePeerClose, this), MakeCallback (&JsSink::HandlePeerError, this));
 }
 void JsSink::StopApplication (void) {
@@ -175,7 +174,7 @@ void JsApp::StartApplication (void) {
     socket->Bind6();
   }
   socket->Connect(peer);
-  tick();
+  tick("0ms");
 }
 void JsApp::StopApplication (void) {
   running = false;
@@ -487,7 +486,6 @@ struct TcpClientInfo {
 struct RawSocketClientInfo {
   const Napi::CallbackInfo& info;
   string addr = "";
-  int port;
 
   bool packetSocket = false;
 
@@ -496,10 +494,7 @@ struct RawSocketClientInfo {
   bool useTicks = false;
 
   RawSocketClientInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
-    string dst = init.Get("dst").As<Napi::String>();
-    auto ipp = ipPort(dst);
-    addr = ipp.first;
-    port = ipp.second;
+    addr = init.Get("dst").As<Napi::String>();
     if (init.Has("onTick") && init.Get("onTick").IsFunction()) {
       useTicks = true;
       onTick = init.Get("onTick").As<Napi::Function>();
@@ -528,7 +523,7 @@ struct RawSocketClientInfo {
         app->setup(&info, ns3RawSocket, Address(socket), onTick, tickInterval);
       }
       else {
-        app->setup(&info, ns3RawSocket, Address(InetSocketAddress(Ipv4Address(addr.c_str()), port)), onTick, tickInterval);
+        app->setup(&info, ns3RawSocket, Address(InetSocketAddress(Ipv4Address(addr.c_str()))), onTick, tickInterval);
       }
       v.node.Get(0)->AddApplication(app);
       apps.Add(app);
@@ -542,21 +537,12 @@ struct RawSocketClientInfo {
 struct RawSocketServerInfo {
   const Napi::CallbackInfo& info;
   string addr = "";
-  int port;
 
   bool packetSocket = false;
   bool traceRx = false;
   Napi::Function onReceive;
   RawSocketServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
-    if (init.Get("dst").IsNumber()) {
-      port = init.Get("dst").As<Napi::Number>().Uint32Value();
-    }
-    else {
-      string dst = init.Get("dst").As<Napi::String>();
-      auto ipp = ipPort(dst);
-      addr = ipp.first;
-      port = ipp.second;
-    }
+    addr = init.Get("dst").As<Napi::String>();
     if (init.Has("onReceive") && init.Get("onReceive").IsFunction()) {
       traceRx = true;
       onReceive = init.Get("onReceive").As<Napi::Function>();
@@ -578,7 +564,7 @@ struct RawSocketServerInfo {
         throw Napi::Error::New(info.Env(), "Not implemented");
       }
       else {
-        app->setup(ns3RawSocket, Address(InetSocketAddress(resIp, port)), handleRead);
+        app->setup(ns3RawSocket, Address(InetSocketAddress(resIp)), handleRead);
       }
       v.node.Get(0)->AddApplication(app);
       apps.Add(app);
