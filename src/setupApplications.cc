@@ -165,7 +165,7 @@ void JsApp::setup(const Napi::CallbackInfo* info, Ptr<Socket> socket, Address ad
   };
   premadeCallback = Napi::Function::New(info->Env(), sendPacket);
 }
-void JsApp::StartApplication (void) {
+void JsApp::StartApplication(void) {
   running = true;
   if (InetSocketAddress::IsMatchingType(peer)) {
     socket->Bind();
@@ -176,7 +176,7 @@ void JsApp::StartApplication (void) {
   socket->Connect(peer);
   tick("0ms");
 }
-void JsApp::StopApplication (void) {
+void JsApp::StopApplication(void) {
   running = false;
   if (sendEvent.IsRunning()) {
     Simulator::Cancel(sendEvent);
@@ -186,7 +186,7 @@ void JsApp::StopApplication (void) {
   }
 }
 void JsApp::tick(string customDelay) {
-  string resDelay = interval.size() > 0 ? interval : (customDelay.size() > 0 ? customDelay : "0ms");
+  string resDelay = customDelay.size() > 0 ? customDelay : (interval.size() > 0 ? interval : "0ms");
   if (running) {
     sendEvent = Simulator::Schedule(Time(resDelay), &JsApp::callOnTick, this);
   }
