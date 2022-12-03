@@ -86,7 +86,7 @@ test('Can launch multiple networks', () => {
 
 test('Can add applications', () => {
   const host = new Host();
-  host.setupApplication(new TCPClient({ dst: '192.168.1.3:3000' }));
+  host.setupApplication(new TCPClient({ addr: '192.168.1.3', port :3000 }));
   expect(host.applications.length).toBe(1);
 });
 
@@ -94,8 +94,8 @@ test('Can add applications and launch', () => {
   const net = new Network();
   const host1 = new Host();
   const host2 = new Host();
-  host1.setupApplication(new TCPClient({ dst: '192.168.1.3:3000' }));
-  host2.setupApplication(new TCPServer({ dst: '3000' }));
+  host1.setupApplication(new TCPClient({ addr: '192.168.1.3', port: 3000 }));
+  host2.setupApplication(new TCPServer({ port: 3000 }));
   net.addNode(host1);
   net.addNode(host2);
   host1.connect(host2, { sourceIP: '192.168.1.2', targetIP: '192.168.1.3' });
@@ -112,8 +112,8 @@ test('Can run with custom delay and data rate', () => {
   const net = new Network();
   const host1 = new Host();
   const host2 = new Host();
-  host1.setupApplication(new TCPClient({ dst: '192.168.1.3:3000' }));
-  host2.setupApplication(new TCPServer({ dst: '3000' }));
+  host1.setupApplication(new TCPClient({ addr: '192.168.1.3', port: 3000 }));
+  host2.setupApplication(new TCPServer({ port: 3000 }));
   net.addNode(host1);
   net.addNode(host2);
   host1.connect(host2, { sourceIP: '192.168.1.2', targetIP: '192.168.1.3', dataRate: '10Mbps', delay: '5ms' });

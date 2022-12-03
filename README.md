@@ -31,7 +31,7 @@ const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer, UDPClient,
 const dstDir = path.resolve(__dirname, 'files');
 
 const net = new Network({ 
-  animeLen: 5, // seconds, default is 10
+  animeLen: 5, // seconds, default is 3
 });
 
 const host1 = new Host({ 
@@ -40,7 +40,8 @@ const host1 = new Host({
 const host2 = new Host({ name: 'Bob' });
 
 host1.setupApplication(new TCPClient({ 
-  dst: '192.168.1.3:3000', // accepts dst in format <IP address>:<port>
+  addr: '192.168.1.3',
+  port: 3000,
   onTick: ({ time, sendPacket, tick }) => { // you can implement you custom logic here
     if (time > 1000) {
       const buf = Buffer.from("hello");
@@ -51,7 +52,7 @@ host1.setupApplication(new TCPClient({
 }));
 
 host2.setupApplication(new TCPServer({ 
-  dst: '3000', // accepts only port number via dst field,
+  port: 3000,
   onReceive: ({ address, packet, reply }) => { // custom recieve callback
     console.log('[*] recieve', address, packet);
     const buf = Buffer.from("world?");
@@ -80,7 +81,7 @@ The structure of internal config is shown below:
 {
   nodes: [{ id, title, x, y, type, applications }],
   edges: [{ source, target, type, sourceIP, targetIP }],
-  options: { animeLen: 10, popuplateIP: true }
+  options: { animeLen: 10, popuplateIP: false }
 }
 ```
 A network is represented as a graph that contains information about nodes and connections in a network. The module's work is to:

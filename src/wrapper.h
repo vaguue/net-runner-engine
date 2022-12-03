@@ -44,7 +44,7 @@ struct DebugStream {
 struct options {
   bool populateIP = false;
   bool verbose = false;
-  double animeLen = 10;
+  double animeLen = 3;
 };
 
 struct application {

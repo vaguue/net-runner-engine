@@ -15,10 +15,11 @@ const host1 = new Host({ name: 'UdpClient', x: 0, y: 0 });
 const host2 = new Host({ name: 'UdpServer', x: 400, y: 0 });
 
 host1.setupApplication(new UDPClient({ 
-  dst: '192.168.2.1:3000', 
+  addr: '192.168.2.1', 
+  port: 3000,
   onTick: ({ time, sendPacket }) => {
     if (time < 1000) {
-      const buf = Buffer.from("hello\0");
+      const buf = Buffer.from('hello');
       sendPacket(buf);
     }
     return '0.01s';
@@ -26,10 +27,10 @@ host1.setupApplication(new UDPClient({
 }));
 
 host2.setupApplication(new UDPServer({ 
-  dst: 3000,
+  port: 3000,
   onReceive: ({ address, packet, reply }) => {
     console.log('[*] receive', address, packet);
-    const buf = Buffer.from("world?");
+    const buf = Buffer.from('world?');
     reply(buf);
   },
 }));

@@ -13,7 +13,7 @@ const net = new Network({
 const host1 = new Host({ name: 'Pinger' });
 const host2 = new Host({ name: 'PingTarget' });
 
-host1.setupApplication(new Ping({ dst: '192.168.1.3', interval: '1s' }));
+host1.setupApplication(new Ping({ addr: '192.168.1.3', interval: '1s' }));
 
 net.addNode(host1); 
 net.addNode(host2);

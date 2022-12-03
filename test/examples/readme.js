@@ -16,7 +16,8 @@ const host1 = new Host({
 const host2 = new Host({ name: 'Bob' });
 
 host1.setupApplication(new TCPClient({ 
-  dst: '192.168.1.3:3000', // accepts dst in format <IP address>:<port>
+  addr: '192.168.1.3',
+  port: 3000,
   onTick: ({ time, sendPacket, tick }) => { // you can implement you custom logic here
     if (time > 1000) {
       const buf = Buffer.from("hello");
@@ -27,7 +28,7 @@ host1.setupApplication(new TCPClient({
 }));
 
 host2.setupApplication(new TCPServer({ 
-  dst: '3000', // accepts only port number via dst field,
+  port: 3000,
   onReceive: ({ address, packet, reply }) => { // custom receive callback
     console.log('[*] receive', address, packet);
     const buf = Buffer.from("world?");

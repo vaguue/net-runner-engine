@@ -210,15 +210,15 @@ void JsApp::callOnTick() {
 
 struct PingInfo {
   string interval = "0.5s";
-  string dst;
+  string addr;
   PingInfo(const Napi::Object& init) {
-    dst = init.Get("dst").As<Napi::String>();
+    addr = init.Get("addr").As<Napi::String>();
     if (init.Has("interval")) {
       interval = init.Get("interval").As<Napi::String>();
     }
   };
   void install(ApplicationContainer& apps, MyNode& v) {
-    V4PingHelper ping = V4PingHelper(Ipv4Address(dst.c_str()));
+    V4PingHelper ping = V4PingHelper(Ipv4Address(addr.c_str()));
     ping.SetAttribute ("Interval", TimeValue(Time(interval)));
     apps = ping.Install(v.node.Get(0));
   }
@@ -227,8 +227,8 @@ struct PingInfo {
 struct SinkInfo {
   InetSocketAddress dst = InetSocketAddress(Ipv4Address::GetAny());
   SinkInfo(const Napi::Object& init) {
-    if (init.Has("dst")) {
-      dst = InetSocketAddress(Ipv4Address(string(init.Get("dst").As<Napi::String>()).c_str()));
+    if (init.Has("addr")) {
+      dst = InetSocketAddress(Ipv4Address(string(init.Get("addr").As<Napi::String>()).c_str()));
     }
   };
   void install(ApplicationContainer& apps, MyNode& v) {
@@ -272,15 +272,10 @@ struct UdpServerInfo {
   bool traceRx = false;
   Napi::Function onReceive;
   UdpServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
-    if (init.Get("dst").IsNumber()) {
-      port = init.Get("dst").As<Napi::Number>().Uint32Value();
+    if (init.Has("addr")) {
+      addr = init.Get("addr").As<Napi::String>().Utf8Value();
     }
-    else {
-      string dst = init.Get("dst").As<Napi::String>();
-      auto ipp = ipPort(dst);
-      addr = ipp.first;
-      port = ipp.second;
-    }
+    port = init.Get("port").As<Napi::Number>().Uint32Value();
     if (init.Has("onReceive") && init.Get("onReceive").IsFunction()) {
       traceRx = true;
       onReceive = init.Get("onReceive").As<Napi::Function>();
@@ -317,15 +312,10 @@ struct TcpServerInfo {
   bool traceRx = false;
   Napi::Function onReceive;
   TcpServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
-    if (init.Get("dst").IsNumber()) {
-      port = init.Get("dst").As<Napi::Number>().Uint32Value();
+    if (init.Has("addr")) {
+      addr = init.Get("addr").As<Napi::String>().Utf8Value();
     }
-    else {
-      string dst = init.Get("dst").As<Napi::String>();
-      auto ipp = ipPort(dst);
-      addr = ipp.first;
-      port = ipp.second;
-    }
+    port = init.Get("port").As<Napi::Number>().Uint32Value();
     if (init.Has("onReceive") && init.Get("onReceive").IsFunction()) {
       traceRx = true;
       onReceive = init.Get("onReceive").As<Napi::Function>();
@@ -366,10 +356,8 @@ struct UdpClientInfo {
   bool useTicks = false;
 
   UdpClientInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
-    string dst = init.Get("dst").As<Napi::String>();
-    auto ipp = ipPort(dst);
-    addr = ipp.first;
-    port = ipp.second;
+    addr = init.Get("addr").As<Napi::String>();
+    port = init.Get("port").As<Napi::Number>().Uint32Value();
     /*if (init.Has("maxPackets")) {
       maxPackets = init.Get("maxPackets").As<Napi::Number>().Uint32Value();
     }*/
@@ -436,10 +424,8 @@ struct TcpClientInfo {
   bool useTicks = false;
 
   TcpClientInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
-    string dst = init.Get("dst").As<Napi::String>();
-    auto ipp = ipPort(dst);
-    addr = ipp.first;
-    port = ipp.second;
+    addr = init.Get("addr").As<Napi::String>().Utf8Value();
+    port = init.Get("port").As<Napi::Number>().Uint32Value();
     if (init.Has("packetSize")) {
       packetSize = init.Get("packetSize").As<Napi::Number>().Uint32Value();
     }
@@ -494,7 +480,7 @@ struct RawSocketClientInfo {
   bool useTicks = false;
 
   RawSocketClientInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
-    addr = init.Get("dst").As<Napi::String>();
+    addr = init.Get("addr").As<Napi::String>();
     if (init.Has("onTick") && init.Get("onTick").IsFunction()) {
       useTicks = true;
       onTick = init.Get("onTick").As<Napi::Function>();
@@ -542,7 +528,7 @@ struct RawSocketServerInfo {
   bool traceRx = false;
   Napi::Function onReceive;
   RawSocketServerInfo(const Napi::Object& init, const Napi::CallbackInfo& info) : info{info} {
-    addr = init.Get("dst").As<Napi::String>();
+    addr = init.Get("addr").As<Napi::String>();
     if (init.Has("onReceive") && init.Get("onReceive").IsFunction()) {
       traceRx = true;
       onReceive = init.Get("onReceive").As<Napi::Function>();

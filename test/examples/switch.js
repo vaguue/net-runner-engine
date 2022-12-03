@@ -25,11 +25,12 @@ for (let i = 0; i < n; ++i) {
 //setting up UDP clients and servers
 for (let i = 0; i < half; ++i) {
   hosts[i].setupApplication(new UDPClient({ 
-    dst: `192.168.0.${i + half}:8888`, 
+    addr: `192.168.0.${i + half}`, 
+    port: 8888,
     dataRate: '1Mbps', // without onTick provided, application will just generate traffic, default data rate is 5Mbps
   }));
   hosts[n - i - 1].setupApplication(new UDPServer({ 
-    dst: '8888' // here you could provide onReceive, but this is optional
+    port: 8888 // here you could provide onReceive, but this is optional
   }));
 }
 
