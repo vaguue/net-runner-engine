@@ -21,6 +21,7 @@ jobs:
 
   build:
     needs: configure
+    runs-on: ubuntu-latest
     container:
       image: netrunnerxyz/ns3-node:latest
       options: --user ${{ needs.configure.outputs.uid_gid }}
