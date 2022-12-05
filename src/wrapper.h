@@ -99,7 +99,7 @@ struct Wrapper : public Napi::ObjectWrap<Wrapper> {
   Napi::Value setPcapPath(const Napi::CallbackInfo& info);
   Napi::Value fromConfig(const Napi::CallbackInfo&);
   Napi::Value runFromConfig(const Napi::CallbackInfo&);
-  Napi::Value initTracing(Napi::Env&, const NodeCont&);
+  std::vector<std::string> initTracing(Napi::Env&, const NodeCont&);
   Napi::Value run(const Napi::CallbackInfo&);  
   static Napi::Function GetClass(Napi::Env);
 

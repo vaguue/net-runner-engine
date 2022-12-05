@@ -60,10 +60,14 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
     debug << "[DEBUG] popuplating routing tables" << endl;
     Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   }
-  initTracing(env, myNodes);
+  vector<string> files = initTracing(env, myNodes);
   this->stopTime = options.animeLen;
 
-  return env.Null();
+  Napi::Array res = Napi::Array::New(env, files.size());
+  for (uint32_t i = 0; i < files.size(); ++i) {
+    res.Set(i, files[i]);
+  }
+  return res;
 }
 /* *** */
 

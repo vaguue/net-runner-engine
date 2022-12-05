@@ -52,12 +52,12 @@ Napi::Value Wrapper::setPcapPath(const Napi::CallbackInfo& info) {
 
 Napi::Value Wrapper::runFromConfig(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
-  this->fromConfig(info);
+  Napi::Value res = this->fromConfig(info);
   Simulator::Stop(Seconds(this->stopTime));
   Simulator::Run();
   Simulator::Destroy();
   this->clear();
-  return env.Null();
+  return res;
 }
 
 void Wrapper::clear() {

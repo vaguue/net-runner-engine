@@ -3,12 +3,13 @@
 
 name: NPM Package
 
-env:
-  GLOBAL_SEARCH: true
-  
 on:
   release:
     types: [created]
+
+env:
+  GLOBAL_SEARCH: true
+  
 
 jobs:
   configure:
