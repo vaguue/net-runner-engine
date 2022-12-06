@@ -1,4 +1,5 @@
 const Simulator = require('..');
+const { Application, ...Applications } = require('../lib/applications');
 const path = require('path');
 const fs = require('fs');
 const exampleConfig = require('./rawConfig');
@@ -67,7 +68,7 @@ test('Can disconnect nodes', () => {
   expect(net.config.edges.length).toBe(0);
 });
 
-test('Can launch after adding and nodes', () => {
+test('Can launch after adding and connecting nodes', () => {
   const net = new Network();
   const host1 = new Host();
   const host2 = new Host();
@@ -118,6 +119,47 @@ test('Can run with custom delay and data rate', () => {
   net.addNode(host2);
   host1.connect(host2, { sourceIP: '192.168.1.2', targetIP: '192.168.1.3', dataRate: '10Mbps', delay: '5ms' });
   expect(() => net.run(dstDir)).not.toThrow();
+});
+
+for (const name of Object.keys(Applications)) {
+  if (name != 'Sink' && name != 'RawSocketServer') {
+    test(`${name} throws on no arguments`, () => {
+      const net = new Network();
+      const host1 = new Host();
+      expect(() => host1.setupApplication(new Applications[name]({}))).toThrow();
+    });
+  }
+  test(`${name} throws on invalid addr`, () => {
+      const net = new Network();
+      const host1 = new Host();
+      host1.setupApplication(new Applications[name]({ addr: 'invalid', port: 3000 }));
+      net.addNode(host1);
+      expect(() => net.run(dstDir)).toThrow();
+  });
+}
+
+for (arg of ['sourceIP', 'targetIP', 'dataRate', 'delay', 'sourceMask', 'targetMask']) {
+  test(`Throws on invalid connection arguments, (${arg})`, () => {
+    const net = new Network();
+    const host1 = new Host();
+    const host2 = new Host();
+    host1.setupApplication(new TCPClient({ addr: '192.168.1.3', port: 3000 }));
+    host2.setupApplication(new TCPServer({ port: 3000 }));
+    net.addNode(host1);
+    net.addNode(host2);
+    host1.connect(host2, { sourceIP: '192.168.1.2', targetIP: '192.168.1.3', dataRate: '10Mbps', delay: '5ms', [arg]: 'invalid' });
+    expect(() => net.run(dstDir)).toThrow();
+  });
+}
+
+test('Throws on connecting nodes from different networks', () => {
+  const net1 = new Network();
+  const net2 = new Network();
+  const host1 = new Host();
+  const host2 = new Host();
+  net1.addNode(host1);
+  net2.addNode(host2);
+  expect(() => host1.connect(host2, { sourceIP: '192.168.1.2', targetIP: '192.168.1.3' })).toThrow();
 });
 
 afterAll(done => {

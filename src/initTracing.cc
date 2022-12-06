@@ -80,7 +80,7 @@ vector<string> Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
 
       auto routingTablePath = fns::path{this->pcapPath} / fns::path{e.getName() + "-routing.routes"};
       Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper>(routingTablePath, std::ios::out);
-      g.PrintRoutingTableEvery(Seconds(0.01), e.node.Get(0), routingStream);
+      g.PrintRoutingTableAt(Seconds(this->stopTime), e.node.Get(0), routingStream);
 
       resFiles.push_back(arpPath);
       resFiles.push_back(routingTablePath);
