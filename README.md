@@ -34,10 +34,10 @@ const net = new Network({
   animeLen: 5, // seconds, default is 3
 });
 
-const host1 = new Host({ 
+const host1 = new Host(net, { 
   name: 'Alice', // this name will be used in resulting PCAP files, optional (some numbers will be used if not specified, e.g. 0-1-hub-csma-0.pcap)
 });
-const host2 = new Host({ name: 'Bob' });
+const host2 = new Host(net, { name: 'Bob' });
 
 host1.setupApplication(new TCPClient({ 
   addr: '192.168.1.3',
@@ -60,10 +60,6 @@ host2.setupApplication(new TCPServer({
   },
 }));
 
-// each host should be added to network BEFORE conneting
-net.addNode(host1); 
-net.addNode(host2);
-
 // connecting two hosts
 host1.connect(host2, { 
   sourceIP: '192.168.1.2', //IP of host1's device, required for Host node
@@ -72,7 +68,7 @@ host1.connect(host2, {
   delay: '1ms', //optional, default is 5ms
 });
 
-net.run(dstDir, { upload: true }).then(url => console.log('[*] uploaded', url)); //simulate network and upload results to http://net-runner.xyz
+net.run(dstDir, { upload: true }).then(url => console.log('[*] uploaded', url)); //simulate network and upload results to https://net-runner.xyz/
 ```
 After running this script you'll see appropriate PCAP files for each interface of each network's node in 'files' directory.
 ## Documentation

@@ -10,13 +10,10 @@ const net = new Network({
   animeLen: 5, // seconds, default is 10
 });
 
-const host1 = new Host({ name: 'Pinger' });
-const host2 = new Host({ name: 'PingTarget' });
+const host1 = new Host(net, { name: 'Pinger' });
+const host2 = new Host(net, { name: 'PingTarget' });
 
 host1.setupApplication(new Ping({ addr: '192.168.1.3', interval: '1s' }));
-
-net.addNode(host1); 
-net.addNode(host2);
 
 host1.connect(host2, { 
   sourceIP: '192.168.1.2',

@@ -10,10 +10,10 @@ const net = new Network({
   animeLen: 5, // seconds, default is 10
 });
 
-const host1 = new Host({ 
+const host1 = new Host(net, { 
   name: 'Alice', // this name will be used in resulting PCAP files, optional (some numbers will be used if not specified, e.g. 0-1-hub-csma-0.pcap)
 });
-const host2 = new Host({ name: 'Bob' });
+const host2 = new Host(net, { name: 'Bob' });
 
 host1.setupApplication(new TCPClient({ 
   addr: '192.168.1.3',
@@ -35,10 +35,6 @@ host2.setupApplication(new TCPServer({
     reply(buf);
   },
 }));
-
-// each host should be added to network BEFORE conneting
-net.addNode(host1); 
-net.addNode(host2);
 
 // connecting two hosts
 host1.connect(host2, { 

@@ -11,8 +11,8 @@ const net = new Network({
   populateIP: true,
 });
 
-const host1 = new Host({ name: 'UdpClient', x: 0, y: 0 });
-const host2 = new Host({ name: 'UdpServer', x: 400, y: 0 });
+const host1 = new Host(net, { name: 'UdpClient', x: 0, y: 0 });
+const host2 = new Host(net, { name: 'UdpServer', x: 400, y: 0 });
 
 host1.setupApplication(new UDPClient({ 
   addr: '192.168.2.1', 
@@ -35,14 +35,8 @@ host2.setupApplication(new UDPServer({
   },
 }));
 
-net.addNode(host1); 
-net.addNode(host2);
-
-const swtch = new Switch({ name: 'MyHomeSwitch', x: 800, y: 0 });
-const tmpHosts = Array.from({ length: 3 }, (_, i) => new Host({ name: `Host${i}`, y: 200, x: 800 + i*200 }));
-
-net.addNode(swtch);
-tmpHosts.forEach(e => net.addNode(e));
+const swtch = new Switch(net, { name: 'MyHomeSwitch', x: 800, y: 0 });
+const tmpHosts = Array.from({ length: 3 }, (_, i) => new Host(net, { name: `Host${i}`, y: 200, x: 800 + i*200 }));
 
 host2.connect(swtch, {
   sourceIP: '192.168.2.1',
