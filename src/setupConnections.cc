@@ -166,7 +166,7 @@ void setupConnections(NodeCont& myNodes, const GraphCont& graph, const AddrCont&
         was[v][i] = true;
       }
       OpenFlowSwitchHelper swtch;
-      bool useDrop = false; //TODO config options;
+      bool useDrop = true; //TODO config options;
       Time timeout = Seconds (0);
       debug << "[DEBUG] switch dev numer: " << e.devs.GetN() << endl;
       BridgeHelper bridgeHelper;

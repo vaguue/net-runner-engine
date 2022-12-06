@@ -1,4 +1,4 @@
-const files = ['onTick', 'ping', 'rawConfig', 'readme', 'routing', 'switch'];
+const files = ['onTick', 'ping', 'rawConfig', 'readme', 'routing', 'switch', 'switchPing'];
 
 async function main() {
   for (const file of files) {
