@@ -35,8 +35,8 @@ jobs:
       - run: npm test
 
   publish-gpr:
-    needs: build
     runs-on: ubuntu-latest
+    needs: build
     container:
       image: netrunnerxyz/ns3-node:latest
       options: --user ${{ needs.configure.outputs.uid_gid }}
