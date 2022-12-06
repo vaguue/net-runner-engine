@@ -38,6 +38,7 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
 
   auto options = getOpitons(config);
   debug.enabled = options.verbose;
+  this->stopTime = options.animeLen;
 
   auto myNodes = getNodes(config);
   auto graph = getGraph(config);
@@ -61,7 +62,6 @@ Napi::Value Wrapper::fromConfig(const Napi::CallbackInfo& info) {
     Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   }
   vector<string> files = initTracing(env, myNodes);
-  this->stopTime = options.animeLen;
 
   Napi::Array res = Napi::Array::New(env, files.size());
   for (uint32_t i = 0; i < files.size(); ++i) {

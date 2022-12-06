@@ -25,7 +25,7 @@ vector<string> Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
     for (auto it = e.devs.Begin(); i < e.devs.GetN(); ++i) {
       CsmaHelper csma;
       PointToPointHelper pointToPoint;
-      YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
+      YansWifiPhyHelper phy = YansWifiPhyHelper::Default();
       string devName = e.devNames[i];
       string fpath = (fns::path{this->pcapPath} / fns::path{devName + ".pcap"}).string();
       if (devName.find("p2p") != string::npos) {
@@ -68,7 +68,6 @@ vector<string> Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
   }
   resFiles.push_back(animFile);
   animePointer->EnablePacketMetadata (true);
-  //Ipv4RoutingHelper routingTrace;
   Ipv4GlobalRoutingHelper g;
   AsciiTraceHelper ascii;
   for (auto& keyVal : myNodes) {
@@ -76,7 +75,6 @@ vector<string> Wrapper::initTracing(Napi::Env& env, const NodeCont& myNodes) {
     if (e.type == "pc") {
       auto arpPath = fns::path{this->pcapPath} / fns::path{e.getName() + "-arp.txt"};
       Ipv4RoutingHelper::PrintNeighborCacheEvery(Seconds(0.01), e.node.Get(0), ascii.CreateFileStream(arpPath));
-      //routingTrace.PrintArpCacheEvery(0.1, e.node.Get(0), ascii.CreateFileStream(path));
 
       auto routingTablePath = fns::path{this->pcapPath} / fns::path{e.getName() + "-routing.routes"};
       Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper>(routingTablePath, std::ios::out);

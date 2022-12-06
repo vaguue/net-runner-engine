@@ -53,7 +53,7 @@ const config = {
     { source: 3, target: 1, sourceIP: '192.168.1.4', targetIP: '192.168.1.0' },
   ],
   options: {
-    animeLen: 10,
+    animeLen: 3,
     populateIP: false,
     verbose: false,
   },
