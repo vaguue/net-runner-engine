@@ -2,13 +2,13 @@
 
 
 <p align="center">
-  <img alt="Net-runner" src="https://raw.githubusercontent.com/hedonist666/net-runner-engine/main/logo.svg" height="420" width="620"/>
+  <img alt="Net-runner" src="https://raw.githubusercontent.com/vaguue/net-runner-engine/main/logo.svg" height="420" width="620"/>
 </p>
 
 
 ## About
 This is the [NS-3](https://www.nsnam.org/) based [node-addon-api](https://github.com/nodejs/node-addon-api) module used for the [Net-runner](https://net-runner.xyz) website. 
-It's core functionality is to launch the NS-3 functions according to JSON config specified as an argument and dump the results. Example config and usage from Node.js can be found at [test](https://github.com/hedonist666/net-runner-engine/blob/main/test/test_binding.js) folder.
+It's core functionality is to launch the NS-3 functions according to JSON config specified as an argument and dump the results. Example config and usage from Node.js can be found at [examples](https://github.com/vaguue/net-runner-engine/blob/main/test/examples) folder.
 ## Goal
 The goal of this project is to provide the web-based platform who those who are learning the inner workings of computer networks. Although the project is up and running, this project is very young and has **many** work to do. So I decided to do this with the NS-3 community all together!
 If you are an NS-3 expert, or Node.js enthusiast, or just want to commit to this project, feel free to contact me (see contacts below) and ask any questions.
@@ -75,6 +75,8 @@ host1.connect(host2, {
 net.run(dstDir, { upload: true }).then(url => console.log('[*] uploaded', url)); //simulate network and upload results to http://net-runner.xyz
 ```
 After running this script you'll see appropriate PCAP files for each interface of each network's node in 'files' directory.
+## Documentation
+Documentation for this module can be found [here](https://www.net-runner.xyz/blog/M2w2RJCxrg)
 ## Architecture
 The structure of internal config is shown below:
 ```
@@ -102,8 +104,8 @@ Some tasks are marked done, which means you can use appropriate functionality on
 - [x] PCAP dumps (each interface)
 - [x] ARP table dumps(each host)
 - [x] Connection configuration (channel attributes)
-- [ ] Documentation
-- [ ] Routing table dumps 
+- [x] Documentation
+- [x] Routing table dumps 
 - [ ] Setting up IP/MAC addresses manually
 - [ ] DHCP server functionality
 - [ ] WIFI
