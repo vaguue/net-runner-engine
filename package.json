@@ -21,7 +21,7 @@
   },
   "gypfile": true,
   "name": "net-runner-engine",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "author": "Valentina K <sabrinarempel7@gmail.com>",
   "license": "GPL-3.0",
   "description": "Node.js ns3 wrapper",
