@@ -44,7 +44,7 @@ host1.setupApplication(new TCPClient({
   port: 3000,
   onTick: ({ time, sendPacket, tick }) => { // you can implement you custom logic here
     if (time > 1000) {
-      const buf = Buffer.from("hello");
+      const buf = Buffer.from('hello');
       sendPacket(buf); //accepts Buffer only
     }
     return '0.01s'; //call onTick after 0.1s
@@ -55,7 +55,7 @@ host2.setupApplication(new TCPServer({
   port: 3000,
   onReceive: ({ address, packet, reply }) => { // custom recieve callback
     console.log('[*] recieve', address, packet);
-    const buf = Buffer.from("world?");
+    const buf = Buffer.from('world?');
     reply(buf);
   },
 }));
