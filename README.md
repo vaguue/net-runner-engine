@@ -31,7 +31,7 @@ const { fromConfig, Network, Hub, Switch, Host, TCPClient, TCPServer, UDPClient,
 const dstDir = path.resolve(__dirname, 'files');
 
 const net = new Network({ 
-  animeLen: 5, // seconds, default is 3
+  animeLen: 1, // seconds, default is 3
 });
 
 const host1 = new Host(net, { 
@@ -47,7 +47,7 @@ host1.setupApplication(new TCPClient({
       const buf = Buffer.from("hello");
       sendPacket(buf); //accepts Buffer only
     }
-    return '0.1s'; //call onTick after 0.1s
+    return '0.01s'; //call onTick after 0.1s
   },
 }));
 
